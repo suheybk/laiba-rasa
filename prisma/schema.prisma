@@ -1,0 +1,460 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?
+  username      String    @unique
+  displayName   String?
+  password      String?
+  language      Language  @default(TR)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  kycStatus     KycStatus @default(PENDING)
+  isBanned      Boolean   @default(false)
+  onboardingCompleted Boolean @default(false)
+
+  // Relations
+  notes         Note[]
+  subscriptions Subscription[]
+  gameSessions  GameSession[]
+  creatorWallet CreatorWallet?
+  reports       Report[]       @relation("ReporterReports")
+  reviewedReports Report[]     @relation("ReviewerReports")
+  
+  // Social
+  followers     Follow[]       @relation("Following")
+  following     Follow[]       @relation("Followers")
+  
+  // Mastery
+  masteryEntries MasteryEntry[]
+  
+  // Auth
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+// ============================================
+// NOTES (CRAQ MODEL)
+// ============================================
+
+model Note {
+  id            String       @id @default(cuid())
+  userId        String
+  title         String
+  language      Language
+  subject       String?
+  topic         String?
+  qualityScore  Int          @default(0)
+  visibility    Visibility   @default(PRIVATE)
+  reviewStatus  ReviewStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concepts      Concept[]
+  relationships Relationship[]
+  applications  Application[]
+  questions     Question[]
+  gameCards     GameCard[]
+  gameSessions  GameSession[]
+  earnings      Earning[]
+
+  @@index([userId, visibility])
+  @@index([subject, topic])
+}
+
+model Concept {
+  id          String   @id @default(cuid())
+  noteId      String
+  term        String
+  definition  String   @db.Text
+  keywords    String[] // Array of keywords
+  importance  Int      @default(3)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  note        Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  // Relationships as source or target
+  sourceRelationships Relationship[] @relation("SourceConcept")
+  targetRelationships Relationship[] @relation("TargetConcept")
+}
+
+model Relationship {
+  id               String           @id @default(cuid())
+  noteId           String
+  sourceConceptId  String
+  targetConceptId  String
+  relationshipType RelationshipType
+  description      String?          @db.Text
+  createdAt        DateTime         @default(now())
+
+  // Relations
+  note          Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  sourceConcept Concept @relation("SourceConcept", fields: [sourceConceptId], references: [id], onDelete: Cascade)
+  targetConcept Concept @relation("TargetConcept", fields: [targetConceptId], references: [id], onDelete: Cascade)
+}
+
+model Application {
+  id               String   @id @default(cuid())
+  noteId           String
+  relatedConceptIds String[] // Array of concept IDs
+  scenario         String   @db.Text
+  context          String?
+  createdAt        DateTime @default(now())
+
+  // Relations
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id              String     @id @default(cuid())
+  noteId          String
+  questionText    String     @db.Text
+  answerConceptIds String[]  // Array of concept IDs
+  difficulty      Int        @default(3)
+  bloomLevel      BloomLevel @default(UNDERSTAND)
+  createdAt       DateTime   @default(now())
+
+  // Relations
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// GAME ENGINE
+// ============================================
+
+model GameCard {
+  id              String       @id @default(cuid())
+  noteId          String
+  cardType        CardType
+  content         Json         // Full card content as JSON
+  difficulty      Int          @default(3)
+  importance      Int          @default(3)
+  prerequisites   String[]     // Array of card IDs
+  hints           Json?        // Array of hints
+  feedback        Json?        // Correct/incorrect feedback
+  confidenceScore Float        @default(0.9)
+  verified        Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+
+  // Relations
+  note           Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  gameResponses  GameResponse[]
+}
+
+model GameSession {
+  id            String      @id @default(cuid())
+  userId        String
+  noteId        String
+  mode          GameMode
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  score         Int         @default(0)
+  correctCount  Int         @default(0)
+  totalCount    Int         @default(0)
+  durationSeconds Int?
+  
+  // Arena specific
+  opponentId    String?
+  isWinner      Boolean?
+  eloChange     Int?
+
+  // Relations
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note      Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  responses GameResponse[]
+}
+
+model GameResponse {
+  id          String   @id @default(cuid())
+  sessionId   String
+  cardId      String
+  userAnswer  String?  @db.Text
+  isCorrect   Boolean
+  timeTakenMs Int
+  hintsUsed   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  session  GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  card     GameCard    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model MasteryEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  topic     String
+  mastery   Float    @default(0)
+  lastPlayed DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, subject, topic])
+}
+
+// ============================================
+// SUBSCRIPTIONS
+// ============================================
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String
+  tier            SubscriptionTier
+  period          SubscriptionPeriod
+  status          SubscriptionStatus @default(ACTIVE)
+  startsAt        DateTime
+  endsAt          DateTime
+  trialUsed       Boolean            @default(false)
+  paymentProvider String?
+  externalId      String?
+  createdAt       DateTime           @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// CREATOR ECONOMY
+// ============================================
+
+model CreatorWallet {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  balanceCents        Int      @default(0)
+  lifetimeEarningsCents Int    @default(0)
+  pendingCents        Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  earnings Earning[]
+  payouts  Payout[]
+}
+
+model Earning {
+  id              String   @id @default(cuid())
+  walletId        String
+  noteId          String
+  playMinutes     Int
+  amountCents     Int
+  qualityMultiplier Float
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  // Relations
+  wallet CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  note   Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+}
+
+model Payout {
+  id                String       @id @default(cuid())
+  walletId          String
+  amountCents       Int
+  status            PayoutStatus @default(PENDING)
+  method            PayoutMethod
+  externalReference String?
+  requestedAt       DateTime     @default(now())
+  processedAt       DateTime?
+  notes             String?      @db.Text
+
+  // Relations
+  wallet CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// MODERATION
+// ============================================
+
+model Report {
+  id          String       @id @default(cuid())
+  reporterId  String
+  targetType  ReportTarget
+  targetId    String
+  reason      String
+  description String?      @db.Text
+  status      ReportStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  actionTaken String?
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  reporter User  @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("ReviewerReports", fields: [reviewedBy], references: [id])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Language {
+  TR
+  AR
+  EN
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Visibility {
+  PRIVATE
+  PUBLIC
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RelationshipType {
+  PRODUCES
+  REQUIRES
+  CAUSES
+  PART_OF
+  SIMILAR_TO
+  OPPOSITE_OF
+  LEADS_TO
+  DEPENDS_ON
+}
+
+enum BloomLevel {
+  REMEMBER
+  UNDERSTAND
+  APPLY
+  ANALYZE
+  EVALUATE
+  CREATE
+}
+
+enum CardType {
+  DEFINITION
+  MATCHING
+  ORDERING
+  GAP_FILL
+  ERROR_SPOTTING
+  EXPLANATION
+}
+
+enum GameMode {
+  DUNGEON
+  ARENA
+  RAID
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PRO
+  PRO_MAX
+}
+
+enum SubscriptionPeriod {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  TRIAL
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REJECTED
+}
+
+enum PayoutMethod {
+  BANK_TRANSFER
+  PAYPAL
+}
+
+enum ReportTarget {
+  NOTE
+  USER
+  COMMENT
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
