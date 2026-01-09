@@ -1,7 +1,7 @@
-import NextAuth from "next-auth";
+import { AuthOptions } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import { z } from "zod";
@@ -12,14 +12,14 @@ const loginSchema = z.object({
     password: z.string().min(1),
 });
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: PrismaAdapter(prisma),
+export const authOptions: AuthOptions = {
+    adapter: PrismaAdapter(prisma) as AuthOptions["adapter"],
     providers: [
-        Google({
+        GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
-        Credentials({
+        CredentialsProvider({
             name: "credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
@@ -70,4 +70,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return session;
         },
     },
-});
+};
