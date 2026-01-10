@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,31 +22,50 @@ import {
     BarChart3,
     Settings,
     LogOut,
-    Crown
+    Crown,
+    Loader2
 } from "lucide-react";
-
-// Mock data
-const recentNotes = [
-    { id: "1", title: "Biyoloji - Hücre Organelleri", score: 85, updatedAt: "2 saat önce" },
-    { id: "2", title: "Tarih - Osmanlı Dönemi", score: 72, updatedAt: "dün" },
-    { id: "3", title: "Matematik - Türev", score: 90, updatedAt: "3 gün önce" },
-];
-
-const masteryData = [
-    { subject: "Biyoloji", mastery: 78, color: "emerald" },
-    { subject: "Tarih", mastery: 65, color: "amber" },
-    { subject: "Matematik", mastery: 82, color: "violet" },
-];
-
-const stats = [
-    { label: "Toplam Not", value: "12", icon: FileText, color: "violet" },
-    { label: "Oyun Süresi", value: "24s", icon: Clock, color: "emerald" },
-    { label: "Ortalama Ustalık", value: "75%", icon: Target, color: "amber" },
-    { label: "Sıralama", value: "#142", icon: Trophy, color: "indigo" },
-];
 
 export default function DashboardPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [data, setData] = useState({
+        stats: { totalNotes: 0, gameHours: 0, avgMastery: 0, rank: "-" },
+        recentNotes: [] as any[],
+        masteryData: [] as any[]
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await fetch("/api/dashboard");
+                if (res.ok) {
+                    const json = await res.json();
+                    setData(json);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const stats = [
+        { label: "Toplam Not", value: data.stats.totalNotes, icon: FileText, color: "violet" },
+        { label: "Oyun Saati", value: `${data.stats.gameHours}s`, icon: Clock, color: "emerald" },
+        { label: "Ortalama Ustalık", value: `%${data.stats.avgMastery}`, icon: Target, color: "amber" },
+        { label: "Sıralama", value: data.stats.rank, icon: Trophy, color: "indigo" },
+    ];
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex">
@@ -202,25 +221,31 @@ export default function DashboardPage() {
                                 </Link>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {recentNotes.map((note) => (
-                                    <Link key={note.id} href={`/notes/${note.id}`}>
-                                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer">
-                                            <div className="flex items-center gap-3">
-                                                <BookOpen className="w-5 h-5 text-slate-400" />
-                                                <div>
-                                                    <div className="text-sm font-medium">{note.title}</div>
-                                                    <div className="text-xs text-slate-500">{note.updatedAt}</div>
+                                {data.recentNotes.length > 0 ? (
+                                    data.recentNotes.map((note) => (
+                                        <Link key={note.id} href={`/notes/${note.id}`}>
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer">
+                                                <div className="flex items-center gap-3">
+                                                    <BookOpen className="w-5 h-5 text-slate-400" />
+                                                    <div>
+                                                        <div className="text-sm font-medium">{note.title}</div>
+                                                        <div className="text-xs text-slate-500">{note.updatedAt}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant={note.qualityScore >= 80 ? "success" : note.qualityScore >= 60 ? "warning" : "error"}>
+                                                        %{note.qualityScore}
+                                                    </Badge>
+                                                    <ChevronRight className="w-4 h-4 text-slate-500" />
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant={note.score >= 80 ? "success" : note.score >= 60 ? "warning" : "error"}>
-                                                    {note.score}%
-                                                </Badge>
-                                                <ChevronRight className="w-4 h-4 text-slate-500" />
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4 text-slate-500">
+                                        Henüz not eklenmemiş.
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -233,25 +258,31 @@ export default function DashboardPage() {
                                 </Link>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {masteryData.map((item) => (
-                                    <div key={item.subject}>
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span>{item.subject}</span>
-                                            <span className={`text-${item.color}-400`}>{item.mastery}%</span>
+                                {data.masteryData.length > 0 ? (
+                                    data.masteryData.map((item) => (
+                                        <div key={item.subject}>
+                                            <div className="flex justify-between text-sm mb-2">
+                                                <span>{item.subject}</span>
+                                                <span className={`text-${item.color}-400`}>{item.mastery}%</span>
+                                            </div>
+                                            <div className="mastery-bar">
+                                                <div
+                                                    className="mastery-fill"
+                                                    style={{ width: `${item.mastery}%` }}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="mastery-bar">
-                                            <div
-                                                className="mastery-fill"
-                                                style={{ width: `${item.mastery}%` }}
-                                            />
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4 text-slate-500">
+                                        Henüz veri yok.
                                     </div>
-                                ))}
+                                )}
 
                                 <div className="pt-4 border-t border-slate-700">
                                     <div className="flex items-center gap-2 text-sm text-slate-400">
                                         <TrendingUp className="w-4 h-4 text-emerald-400" />
-                                        Bu hafta %12 ilerleme kaydettiniz!
+                                        Öğrenmeye devam et!
                                     </div>
                                 </div>
                             </CardContent>
