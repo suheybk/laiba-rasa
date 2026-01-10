@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SessionProvider } from "@/components/providers/session-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,14 +36,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased animated-gradient min-h-screen`}
       >
-        {/* Background orbs */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="orb orb-violet w-96 h-96 top-[-10%] left-[-5%]" />
-          <div className="orb orb-indigo w-80 h-80 top-[20%] right-[-10%]" style={{ animationDelay: "-5s" }} />
-          <div className="orb orb-gold w-64 h-64 bottom-[10%] left-[30%]" style={{ animationDelay: "-10s" }} />
-        </div>
+        <SessionProvider>
+          {/* Background orbs */}
+          <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+            <div className="orb orb-violet w-96 h-96 top-[-10%] left-[-5%]" />
+            <div className="orb orb-indigo w-80 h-80 top-[20%] right-[-10%]" style={{ animationDelay: "-5s" }} />
+            <div className="orb orb-gold w-64 h-64 bottom-[10%] left-[30%]" style={{ animationDelay: "-10s" }} />
+          </div>
 
-        {children}
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
