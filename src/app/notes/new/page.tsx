@@ -191,12 +191,37 @@ export default function NewNotePage() {
         setIsLoading(true);
 
         try {
-            // TODO: API call to save note
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+            const payload = {
+                title,
+                subject,
+                topic,
+                qualityScore,
+                concepts: concepts.filter(c => c.term),
+                relationships: relationships,
+                applications: applications,
+                questions: questions,
+                isPublished: publish
+            };
 
+            const response = await fetch("/api/notes/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.details || "Failed to save");
+            }
+
+            const data = await response.json();
+
+            // Redirect to dashboard or the new note view
             router.push("/dashboard");
+            router.refresh();
         } catch (error) {
             console.error("Save error:", error);
+            alert("Not kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.");
         } finally {
             setIsLoading(false);
         }
@@ -569,8 +594,8 @@ export default function NewNotePage() {
                                                         key={level}
                                                         onClick={() => updateQuestion(q.id, "difficulty", level)}
                                                         className={`w-8 h-8 rounded-lg transition-all ${q.difficulty >= level
-                                                                ? "bg-amber-500/30 text-amber-400"
-                                                                : "bg-slate-800 text-slate-600"
+                                                            ? "bg-amber-500/30 text-amber-400"
+                                                            : "bg-slate-800 text-slate-600"
                                                             }`}
                                                     >
                                                         {level}

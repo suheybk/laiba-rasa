@@ -14,6 +14,7 @@ import {
     MoreVertical,
     Calendar,
     Star,
+    Gamepad2,
     ArrowRight,
     Loader2
 } from "lucide-react";
@@ -123,13 +124,19 @@ export default function NotesPage() {
                                             )}
 
                                             <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 pt-3 border-t border-slate-700/50">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5" />
-                                                    {new Date(note.updatedAt).toLocaleDateString('tr-TR')}
+                                                <div className="flex items-center gap-1 text-xs text-slate-500">
+                                                    <Clock className="w-3 h-3" />
+                                                    {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true, locale: tr })}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 justify-end">
-                                                    <Star className="w-3.5 h-3.5 text-amber-400" />
-                                                    {note._count.gameSessions} Oyun
+                                                <div className="flex gap-2 justify-end">
+                                                    <Link href={`/games/dungeon?noteId=${note.id}`}>
+                                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20">
+                                                            <Gamepad2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </Link>
+                                                    {/* The original Star/gameSessions count was here, but the instruction implies replacing it with the game button.
+                                                        If the intent was to keep it, it would need to be re-added alongside the button.
+                                                        For now, following the provided snippet which replaces it. */}
                                                 </div>
                                             </div>
                                         </div>

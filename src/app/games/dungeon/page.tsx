@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,95 +18,35 @@ import {
     Star,
     Flame,
     HelpCircle,
-    RotateCcw
+    RotateCcw,
+    Loader2
 } from "lucide-react";
 
-// Mock game data
-const mockCards = [
-    {
-        id: "1",
-        type: "DEFINITION",
-        question: "Mitokondri nedir?",
-        options: [
-            "ATP üreten, çift zarlı bir hücre organeli",
-            "Protein sentezi yapan organel",
-            "Hücre bölünmesini kontrol eden yapı",
-            "Hücre zarını oluşturan yapı"
-        ],
-        correctIndex: 0,
-        difficulty: 2,
-        hint: "Hücrenin enerji santrali olarak bilinir.",
-        feedback: {
-            correct: "Harika! Mitokondri gerçekten ATP üreten organeldir.",
-            incorrect: "Mitokondri hücrenin enerji santralidir ve ATP üretir."
-        }
-    },
-    {
-        id: "2",
-        type: "DEFINITION",
-        question: "ATP'nin açılımı nedir?",
-        options: [
-            "Adenin Tri Protein",
-            "Adenozin Trifosfat",
-            "Amino Tri Polimer",
-            "Asit Tri Peptit"
-        ],
-        correctIndex: 1,
-        difficulty: 1,
-        hint: "Adenozin ile başlar.",
-        feedback: {
-            correct: "Doğru! ATP = Adenozin Trifosfat",
-            incorrect: "ATP, Adenozin Trifosfat anlamına gelir."
-        }
-    },
-    {
-        id: "3",
-        type: "GAP_FILL",
-        question: "Kas yorgunluğu ____ tükendiğinde oluşur.",
-        options: ["ATP", "DNA", "RNA", "Protein"],
-        correctIndex: 0,
-        difficulty: 3,
-        hint: "Enerji molekülü ile ilgili.",
-        feedback: {
-            correct: "Mükemmel! ATP kasların çalışması için gerekli enerjiyi sağlar.",
-            incorrect: "Kas yorgunluğu ATP tükendiğinde oluşur."
-        }
-    },
-    {
-        id: "4",
-        type: "DEFINITION",
-        question: "Hücre solunumu hangi organelde gerçekleşir?",
-        options: [
-            "Ribozom",
-            "Golgi aygıtı",
-            "Mitokondri",
-            "Endoplazmik retikulum"
-        ],
-        correctIndex: 2,
-        difficulty: 2,
-        hint: "ATP üretimi ile ilgili.",
-        feedback: {
-            correct: "Doğru! Hücre solunumu mitokondride gerçekleşir.",
-            incorrect: "Hücre solunumu mitokondride gerçekleşir ve ATP üretilir."
-        }
-    },
-    {
-        id: "5",
-        type: "DEFINITION",
-        question: "Mitokondri kaç zara sahiptir?",
-        options: ["Bir", "İki", "Üç", "Dört"],
-        correctIndex: 1,
-        difficulty: 1,
-        hint: "Çift zarlı bir organeldir.",
-        feedback: {
-            correct: "Harika! Mitokondri çift zarlıdır.",
-            incorrect: "Mitokondri çift zarlı bir organeldir."
-        }
-    }
-];
+// Types
+interface GameCard {
+    id: string;
+    type: string;
+    question: string;
+    options: string[];
+    correctIndex: number;
+    difficulty: number;
+    hint: string;
+    feedback: {
+        correct: string;
+        incorrect: string;
+    };
+    cardId?: string;
+}
 
 export default function DungeonPlayPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const noteId = searchParams.get("noteId");
+
+    const [cards, setCards] = useState<GameCard[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [isRevealed, setIsRevealed] = useState(false);
@@ -122,12 +62,45 @@ export default function DungeonPlayPage() {
     const [gameOver, setGameOver] = useState(false);
     const [gameComplete, setGameComplete] = useState(false);
 
-    const currentCard = mockCards[currentCardIndex];
-    const progress = ((currentCardIndex) / mockCards.length) * 100;
+    // Fetch Game Data
+    useEffect(() => {
+        async function fetchGame() {
+            if (!noteId) {
+                // If no noteId, maybe redirect or show error (or load demo)
+                // For now, load demo/mock if no ID, or handle error
+                // alert("Not ID eksik!"); 
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/games/dungeon/start", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ noteId })
+                });
+
+                if (!res.ok) throw new Error("Oyun başlatılamadı");
+
+                const data = await res.json();
+                setCards(data.cards);
+                setSessionId(data.sessionId);
+            } catch (error) {
+                console.error(error);
+                alert("Oyun verisi yüklenirken hatayla karşılaşıldı");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchGame();
+    }, [noteId]);
+
+    const currentCard = cards[currentCardIndex];
+    const progress = cards.length > 0 ? ((currentCardIndex) / cards.length) * 100 : 0;
 
     // Timer
     useEffect(() => {
-        if (gameOver || gameComplete || isRevealed) return;
+        if (gameOver || gameComplete || isRevealed || isLoading || !currentCard) return;
 
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
@@ -140,7 +113,33 @@ export default function DungeonPlayPage() {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [currentCardIndex, gameOver, gameComplete, isRevealed]);
+    }, [currentCardIndex, gameOver, gameComplete, isRevealed, isLoading, currentCard]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center dungeon-bg">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-violet-500 animate-spin mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-white">Zindan Hazırlanıyor...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    if (!currentCard) {
+        return (
+            <div className="min-h-screen flex items-center justify-center dungeon-bg text-center p-4">
+                <Card gradient className="p-8">
+                    <h2 className="text-xl font-bold mb-4">Oyun Bulunamadı</h2>
+                    <p className="mb-4">Bu not için henüz yeterli içerik yok veya bir hata oluştu.</p>
+                    <Link href="/dashboard">
+                        <Button>Dashboard'a Dön</Button>
+                    </Link>
+                </Card>
+            </div>
+        );
+    }
+
 
     const handleTimeout = () => {
         setHearts((prev) => prev - 1);
@@ -185,7 +184,7 @@ export default function DungeonPlayPage() {
     };
 
     const handleNextCard = () => {
-        if (currentCardIndex >= mockCards.length - 1) {
+        if (currentCardIndex >= cards.length - 1) {
             setGameComplete(true);
             return;
         }
@@ -236,7 +235,7 @@ export default function DungeonPlayPage() {
                             <div className="text-sm text-slate-500">Puan</div>
                         </div>
                         <div className="p-4 bg-slate-800 rounded-xl">
-                            <div className="text-2xl font-bold text-emerald-400">{correctAnswers}/{currentCardIndex + 1}</div>
+                            <div className="text-2xl font-bold text-emerald-400">{correctAnswers}/{currentCardIndex}</div>
                             <div className="text-sm text-slate-500">Doğru</div>
                         </div>
                     </div>
@@ -259,7 +258,7 @@ export default function DungeonPlayPage() {
 
     // Game Complete Screen
     if (gameComplete) {
-        const accuracy = Math.round((correctAnswers / mockCards.length) * 100);
+        const accuracy = Math.round((correctAnswers / cards.length) * 100);
         const stars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : accuracy >= 50 ? 1 : 0;
 
         return (
@@ -358,7 +357,7 @@ export default function DungeonPlayPage() {
                             />
                         </div>
                         <div className="flex justify-between mt-1 text-xs text-slate-500">
-                            <span>Oda {currentCardIndex + 1}/{mockCards.length}</span>
+                            <span>Oda {currentCardIndex + 1}/{cards.length}</span>
                             <span>
                                 <Clock className="w-3 h-3 inline mr-1" />
                                 {timeLeft}s
@@ -391,7 +390,7 @@ export default function DungeonPlayPage() {
 
                     {/* Options */}
                     <div className="space-y-3 mb-6">
-                        {currentCard.options.map((option, index) => {
+                        {currentCard.options.map((option: string, index: number) => {
                             const isSelected = selectedOption === index;
                             const isCorrect = index === currentCard.correctIndex;
                             const showResult = isRevealed;
@@ -422,9 +421,9 @@ export default function DungeonPlayPage() {
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-medium ${showResult && isCorrect ? "bg-emerald-500/30 text-emerald-400" :
-                                                showResult && isSelected && !isCorrect ? "bg-red-500/30 text-red-400" :
-                                                    isSelected ? "bg-violet-500/30 text-violet-400" :
-                                                        "bg-slate-700 text-slate-400"
+                                            showResult && isSelected && !isCorrect ? "bg-red-500/30 text-red-400" :
+                                                isSelected ? "bg-violet-500/30 text-violet-400" :
+                                                    "bg-slate-700 text-slate-400"
                                             }`}>
                                             {showResult && isCorrect ? <Check className="w-4 h-4" /> :
                                                 showResult && isSelected && !isCorrect ? <X className="w-4 h-4" /> :
@@ -440,8 +439,8 @@ export default function DungeonPlayPage() {
                     {/* Feedback */}
                     {isRevealed && (
                         <div className={`mb-6 p-4 rounded-xl ${selectedOption === currentCard.correctIndex
-                                ? "bg-emerald-500/10 border border-emerald-500/30"
-                                : "bg-red-500/10 border border-red-500/30"
+                            ? "bg-emerald-500/10 border border-emerald-500/30"
+                            : "bg-red-500/10 border border-red-500/30"
                             }`}>
                             <p className={selectedOption === currentCard.correctIndex ? "text-emerald-300" : "text-red-300"}>
                                 {selectedOption === currentCard.correctIndex
@@ -474,7 +473,7 @@ export default function DungeonPlayPage() {
                             </>
                         ) : (
                             <Button onClick={handleNextCard} className="w-full">
-                                {currentCardIndex >= mockCards.length - 1 ? "Tamamla" : "Sonraki Soru"}
+                                {currentCardIndex >= cards.length - 1 ? "Tamamla" : "Sonraki Soru"}
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
                         )}

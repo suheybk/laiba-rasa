@@ -179,19 +179,32 @@ export default function DashboardPage() {
                             </Card>
                         </Link>
 
-                        <Link href="/games">
-                            <Card gradient className="p-6 card-hover cursor-pointer">
+                        {data.recentNotes.length > 0 ? (
+                            <Link href={`/games/dungeon?noteId=${data.recentNotes[0].id}`}>
+                                <Card gradient className="p-6 card-hover cursor-pointer">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                                            <Gamepad2 className="w-6 h-6 text-emerald-400" />
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold">Hızlı Oyun</div>
+                                            <div className="text-sm text-slate-400">Son notunla oyna: {data.recentNotes[0].title}</div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Link>
+                        ) : (
+                            <Card gradient className="p-6 opacity-50 cursor-not-allowed">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                                         <Gamepad2 className="w-6 h-6 text-emerald-400" />
                                     </div>
                                     <div>
                                         <div className="font-semibold">Hızlı Oyun</div>
-                                        <div className="text-sm text-slate-400">Son notunla oyna</div>
                                     </div>
                                 </div>
                             </Card>
-                        </Link>
+                        )}
                     </div>
 
                     {/* Stats grid */}
@@ -289,8 +302,8 @@ export default function DashboardPage() {
                         </Card>
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
 
