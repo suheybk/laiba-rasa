@@ -110,7 +110,7 @@ model Concept {
   noteId              String
   term                String
   definition          String
-  keywords            String[]
+  keywords            Json      @default("[]")
   importance          Int            @default(3)
   createdAt           DateTime       @default(now())
   note                Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
@@ -134,7 +134,7 @@ model Relationship {
 model Application {
   id                String   @id @default(cuid())
   noteId            String
-  relatedConceptIds String[]
+  relatedConceptIds Json      @default("[]")
   scenario          String
   context           String?
   createdAt         DateTime @default(now())
@@ -145,7 +145,7 @@ model Question {
   id               String     @id @default(cuid())
   noteId           String
   questionText     String
-  answerConceptIds String[]
+  answerConceptIds Json      @default("[]")
   difficulty       Int        @default(3)
   bloomLevel       BloomLevel @default(UNDERSTAND)
   createdAt        DateTime   @default(now())
@@ -159,7 +159,7 @@ model GameCard {
   content         Json
   difficulty      Int            @default(3)
   importance      Int            @default(3)
-  prerequisites   String[]
+  prerequisites   Json      @default("[]")
   hints           Json?
   feedback        Json?
   confidenceScore Float          @default(0.9)
