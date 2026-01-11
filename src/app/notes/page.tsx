@@ -16,8 +16,25 @@ import {
     Star,
     Gamepad2,
     ArrowRight,
-    Loader2
+    Loader2,
+    Clock
 } from "lucide-react";
+
+// Simple relative time formatter (native JS, no external dependency)
+function formatRelativeTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "az önce";
+    if (diffMins < 60) return `${diffMins} dakika önce`;
+    if (diffHours < 24) return `${diffHours} saat önce`;
+    if (diffDays < 7) return `${diffDays} gün önce`;
+    return date.toLocaleDateString("tr-TR");
+}
 
 // Types
 interface Note {
@@ -126,17 +143,21 @@ export default function NotesPage() {
                                             <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 pt-3 border-t border-slate-700/50">
                                                 <div className="flex items-center gap-1 text-xs text-slate-500">
                                                     <Clock className="w-3 h-3" />
-                                                    {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true, locale: tr })}
+                                                    {formatRelativeTime(note.updatedAt)}
                                                 </div>
                                                 <div className="flex gap-2 justify-end">
-                                                    <Link href={`/games/dungeon?noteId=${note.id}`}>
-                                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20">
-                                                            <Gamepad2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </Link>
-                                                    {/* The original Star/gameSessions count was here, but the instruction implies replacing it with the game button.
-                                                        If the intent was to keep it, it would need to be re-added alongside the button.
-                                                        For now, following the provided snippet which replaces it. */}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-8 w-8 p-0 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            window.location.href = `/games/dungeon?noteId=${note.id}`;
+                                                        }}
+                                                    >
+                                                        <Gamepad2 className="w-4 h-4" />
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>

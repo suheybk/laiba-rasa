@@ -35,8 +35,8 @@ const gameModes = [
         description: "1v1 gerçek zamanlı yarış. Rakibini yen!",
         icon: Swords,
         color: "rose",
-        available: false,
-        comingSoon: true,
+        available: true,
+        comingSoon: false,
         stats: {
             rank: "#142",
             wins: 24,

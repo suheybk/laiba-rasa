@@ -32,16 +32,20 @@ export default function DashboardPage() {
     const [data, setData] = useState({
         stats: { totalNotes: 0, gameHours: 0, avgMastery: 0, rank: "-" },
         recentNotes: [] as any[],
-        masteryData: [] as any[]
+        masteryData: [] as any[],
+        leaderboard: [] as any[]
     });
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const res = await fetch("/api/dashboard");
-                if (res.ok) {
+                const leaderboardRes = await fetch("/api/leaderboard");
+
+                if (res.ok && leaderboardRes.ok) {
                     const json = await res.json();
-                    setData(json);
+                    const leaderboardJson = await leaderboardRes.json();
+                    setData({ ...json, leaderboard: leaderboardJson.leaderboard });
                 }
             } catch (error) {
                 console.error(error);
@@ -297,6 +301,49 @@ export default function DashboardPage() {
                                         <TrendingUp className="w-4 h-4 text-emerald-400" />
                                         Öğrenmeye devam et!
                                     </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Leaderboard Section */}
+                        <Card gradient className="lg:col-span-2">
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Trophy className="w-5 h-5 text-amber-500" />
+                                    Liderlik Tablosu
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {data.leaderboard && data.leaderboard.length > 0 ? (
+                                        data.leaderboard.map((user, index) => (
+                                            <div key={user.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`
+                                                         w-8 h-8 rounded-full flex items-center justify-center font-bold
+                                                         ${index === 0 ? 'bg-amber-500/20 text-amber-500' :
+                                                            index === 1 ? 'bg-slate-400/20 text-slate-400' :
+                                                                index === 2 ? 'bg-orange-700/20 text-orange-700' : 'bg-slate-800 text-slate-500'}
+                                                     `}>
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 font-bold text-xs uppercase">
+                                                            {user.name.substring(0, 2)}
+                                                        </div>
+                                                        <div className="font-medium text-sm">{user.name}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-sm font-bold text-slate-300">{user.score} XP</div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-4 text-slate-500">
+                                            Sıralama yükleniyor...
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

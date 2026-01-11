@@ -17,10 +17,12 @@ import {
     Plus,
     Trash2,
     Save,
-    Gamepad2,
     Check,
     AlertCircle,
-    Loader2
+    Loader2,
+    Sparkles,
+    Wand2,
+    Gamepad2
 } from "lucide-react";
 
 interface Concept {
@@ -65,7 +67,9 @@ const relationshipTypes = [
 export default function NewNotePage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [currentTab, setCurrentTab] = useState<"concepts" | "relationships" | "applications" | "questions">("concepts");
+    const [currentTab, setCurrentTab] = useState<"concepts" | "relationships" | "applications" | "questions" | "ai-generator">("concepts");
+    const [rawText, setRawText] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Form state
     const [title, setTitle] = useState("");
@@ -227,7 +231,60 @@ export default function NewNotePage() {
         }
     };
 
+    const processText = async () => {
+        if (!rawText.trim()) return;
+
+        setIsProcessing(true);
+
+        // Mock AI processing - Rule based extraction
+        // 1. Split by lines
+        const lines = rawText.split('\n').filter(line => line.trim());
+        const newConcepts: Concept[] = [];
+        const newQuestions: Question[] = [];
+
+        lines.forEach(line => {
+            // Look for Term: Definition pattern
+            const parts = line.split(/[:|-]/);
+            if (parts.length >= 2) {
+                const term = parts[0].trim();
+                const def = parts.slice(1).join(' ').trim();
+
+                if (term.length > 2 && term.length < 50 && def.length > 10) {
+                    const conceptId = Date.now().toString() + Math.random().toString().slice(2, 5);
+
+                    newConcepts.push({
+                        id: conceptId,
+                        term: term,
+                        definition: def,
+                        keywords: [],
+                        importance: 3
+                    });
+
+                    // Generate a basic question
+                    newQuestions.push({
+                        id: Date.now().toString() + Math.random().toString().slice(2, 5),
+                        text: `${term} nedir?`,
+                        conceptIds: [],
+                        difficulty: 2
+                    });
+                }
+            }
+        });
+
+        if (newConcepts.length > 0) {
+            setConcepts([...concepts.filter(c => c.term), ...newConcepts]);
+            setQuestions([...questions.filter(q => q.text), ...newQuestions]);
+            alert(`${newConcepts.length} kavram ve soru otomatik oluşturuldu!`);
+            setCurrentTab("concepts");
+        } else {
+            alert("Metinden uygun kavram çıkarılamadı. Lütfen 'Terim: Tanım' formatını deneyin.");
+        }
+
+        setIsProcessing(false);
+    };
+
     const tabs = [
+        { id: "ai-generator", label: "AI Oluşturucu", icon: Wand2, valid: true, count: 0, min: 0 },
         { id: "concepts", label: "Kavramlar", icon: BookOpen, valid: conceptsValid, count: concepts.filter(c => c.term).length, min: 3 },
         { id: "relationships", label: "İlişkiler", icon: Link2, valid: relationshipsValid, count: relationships.length, min: 2 },
         { id: "applications", label: "Uygulamalar", icon: Lightbulb, valid: applicationsValid, count: applications.filter(a => a.scenario).length, min: 1 },
@@ -615,6 +672,71 @@ export default function NewNotePage() {
                                 </div>
                             </Card>
                         ))}
+                    </div>
+                )}
+
+                {/* AI Generator Tab */}
+                {currentTab === "ai-generator" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-semibold flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-violet-400" />
+                                    AI ve Sihirli Analiz
+                                </h2>
+                                <p className="text-sm text-slate-400">
+                                    Ders notlarını yapıştır, AI senin için kavramları ve soruları çıkarsın.
+                                </p>
+                            </div>
+                        </div>
+
+                        <Card gradient className="p-6">
+                            <textarea
+                                value={rawText}
+                                onChange={(e) => setRawText(e.target.value)}
+                                placeholder={`Metni buraya yapıştırın...\n\nÖrnek format:\nMitokondri: Hücrenin enerji santralidir.\nRibozom: Protein sentezi yapar.`}
+                                className="w-full h-64 p-4 rounded-xl bg-slate-900/50 border-2 border-slate-700 
+                                focus:border-violet-500 focus:outline-none text-white placeholder:text-slate-500 resize-none font-mono text-sm leading-relaxed"
+                            />
+
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    size="lg"
+                                    onClick={processText}
+                                    disabled={isProcessing || !rawText.trim()}
+                                    className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/25"
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Analiz Ediliyor...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Wand2 className="w-5 h-5 mr-2" />
+                                            Analiz Et ve Oluştur
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </Card>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <Card className="p-4 bg-slate-900/50 border-slate-800">
+                                <h3 className="font-semibold mb-2 text-violet-400">Nasıl Çalışır?</h3>
+                                <ul className="text-sm text-slate-400 space-y-2 list-disc list-inside">
+                                    <li>Metindeki "Terim: Tanım" yapılarını otomatik algılar.</li>
+                                    <li>Her tanım için otomatik soru üretir.</li>
+                                    <li>Mevcut notlarına ekleme yapar, silmez.</li>
+                                </ul>
+                            </Card>
+                            <Card className="p-4 bg-slate-900/50 border-slate-800">
+                                <h3 className="font-semibold mb-2 text-amber-400">İpucu</h3>
+                                <p className="text-sm text-slate-400">
+                                    En iyi sonuç için maddeler halinde veya "Kavram: Açıklama" formatında notlar kullanın. Uzun paragrafları bölerseniz daha iyi sonuç alırsınız.
+                                </p>
+                            </Card>
+                        </div>
                     </div>
                 )}
 

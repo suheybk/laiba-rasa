@@ -1,52 +1,38 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite" // switched to sqlite for local dev testing
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// AUTHENTICATION & USERS
-// ============================================
-
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  phone         String?
-  username      String    @unique
-  displayName   String?
-  password      String?
-  language      Language  @default(TR)
-  avatarUrl     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  kycStatus     KycStatus @default(PENDING)
-  isBanned      Boolean   @default(false)
-  onboardingCompleted Boolean @default(false)
-
-  // Relations
-  notes         Note[]
-  subscriptions Subscription[]
-  gameSessions  GameSession[]
-  creatorWallet CreatorWallet?
-  reports       Report[]       @relation("ReporterReports")
-  reviewedReports Report[]     @relation("ReviewerReports")
-  
-  // Social
-  followers     Follow[]       @relation("Following")
-  following     Follow[]       @relation("Followers")
-  
-  // Mastery
-  masteryEntries MasteryEntry[]
-  
-  // Auth
-  accounts      Account[]
-  sessions      Session[]
+  id                  String         @id @default(cuid())
+  email               String         @unique
+  phone               String?
+  username            String         @unique
+  displayName         String?
+  password            String?
+  language            Language       @default(TR)
+  avatarUrl           String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  kycStatus           KycStatus      @default(PENDING)
+  isBanned            Boolean        @default(false)
+  onboardingCompleted Boolean        @default(false)
+  role                Role           @default(STUDENT)
+  accounts            Account[]
+  creatorWallet       CreatorWallet?
+  following           Follow[]       @relation("Followers")
+  followers           Follow[]       @relation("Following")
+  gameSessions        GameSession[]
+  masteryEntries      MasteryEntry[]
+  notes               Note[]
+  reports             Report[]       @relation("ReporterReports")
+  reviewedReports     Report[]       @relation("ReviewerReports")
+  sessions            Session[]
+  subscriptions       Subscription[]
 }
 
 model Account {
@@ -55,15 +41,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -89,57 +74,46 @@ model Follow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-
   follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
   following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
 }
 
-// ============================================
-// NOTES (CRAQ MODEL)
-// ============================================
-
 model Note {
-  id            String       @id @default(cuid())
+  id            String         @id @default(cuid())
   userId        String
   title         String
   language      Language
   subject       String?
   topic         String?
-  qualityScore  Int          @default(0)
-  visibility    Visibility   @default(PRIVATE)
-  reviewStatus  ReviewStatus @default(PENDING)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  // Relations
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  concepts      Concept[]
-  relationships Relationship[]
+  qualityScore  Int            @default(0)
+  visibility    Visibility     @default(PRIVATE)
+  reviewStatus  ReviewStatus   @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   applications  Application[]
-  questions     Question[]
+  concepts      Concept[]
+  earnings      Earning[]
   gameCards     GameCard[]
   gameSessions  GameSession[]
-  earnings      Earning[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions     Question[]
+  relationships Relationship[]
 
   @@index([userId, visibility])
   @@index([subject, topic])
 }
 
 model Concept {
-  id          String   @id @default(cuid())
-  noteId      String
-  term        String
-  definition  String   @db.Text
-  keywords    String[] // Array of keywords
-  importance  Int      @default(3)
-  createdAt   DateTime @default(now())
-
-  // Relations
-  note        Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  
-  // Relationships as source or target
+  id                  String         @id @default(cuid())
+  noteId              String
+  term                String
+  definition          String
+  keywords            String[]
+  importance          Int            @default(3)
+  createdAt           DateTime       @default(now())
+  note                Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
   sourceRelationships Relationship[] @relation("SourceConcept")
   targetRelationships Relationship[] @relation("TargetConcept")
 }
@@ -150,117 +124,94 @@ model Relationship {
   sourceConceptId  String
   targetConceptId  String
   relationshipType RelationshipType
-  description      String?          @db.Text
+  description      String?
   createdAt        DateTime         @default(now())
-
-  // Relations
-  note          Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  sourceConcept Concept @relation("SourceConcept", fields: [sourceConceptId], references: [id], onDelete: Cascade)
-  targetConcept Concept @relation("TargetConcept", fields: [targetConceptId], references: [id], onDelete: Cascade)
+  note             Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  sourceConcept    Concept          @relation("SourceConcept", fields: [sourceConceptId], references: [id], onDelete: Cascade)
+  targetConcept    Concept          @relation("TargetConcept", fields: [targetConceptId], references: [id], onDelete: Cascade)
 }
 
 model Application {
-  id               String   @id @default(cuid())
-  noteId           String
-  relatedConceptIds String[] // Array of concept IDs
-  scenario         String   @db.Text
-  context          String?
-  createdAt        DateTime @default(now())
-
-  // Relations
-  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  noteId            String
+  relatedConceptIds String[]
+  scenario          String
+  context           String?
+  createdAt         DateTime @default(now())
+  note              Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 }
 
 model Question {
-  id              String     @id @default(cuid())
-  noteId          String
-  questionText    String     @db.Text
-  answerConceptIds String[]  // Array of concept IDs
-  difficulty      Int        @default(3)
-  bloomLevel      BloomLevel @default(UNDERSTAND)
-  createdAt       DateTime   @default(now())
-
-  // Relations
-  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  id               String     @id @default(cuid())
+  noteId           String
+  questionText     String
+  answerConceptIds String[]
+  difficulty       Int        @default(3)
+  bloomLevel       BloomLevel @default(UNDERSTAND)
+  createdAt        DateTime   @default(now())
+  note             Note       @relation(fields: [noteId], references: [id], onDelete: Cascade)
 }
 
-// ============================================
-// GAME ENGINE
-// ============================================
-
 model GameCard {
-  id              String       @id @default(cuid())
+  id              String         @id @default(cuid())
   noteId          String
   cardType        CardType
-  content         Json         // Full card content as JSON
-  difficulty      Int          @default(3)
-  importance      Int          @default(3)
-  prerequisites   String[]     // Array of card IDs
-  hints           Json?        // Array of hints
-  feedback        Json?        // Correct/incorrect feedback
-  confidenceScore Float        @default(0.9)
-  verified        Boolean      @default(false)
-  createdAt       DateTime     @default(now())
-
-  // Relations
-  note           Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  gameResponses  GameResponse[]
+  content         Json
+  difficulty      Int            @default(3)
+  importance      Int            @default(3)
+  prerequisites   String[]
+  hints           Json?
+  feedback        Json?
+  confidenceScore Float          @default(0.9)
+  verified        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  note            Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  gameResponses   GameResponse[]
 }
 
 model GameSession {
-  id            String      @id @default(cuid())
-  userId        String
-  noteId        String
-  mode          GameMode
-  startedAt     DateTime    @default(now())
-  endedAt       DateTime?
-  score         Int         @default(0)
-  correctCount  Int         @default(0)
-  totalCount    Int         @default(0)
+  id              String         @id @default(cuid())
+  userId          String
+  noteId          String
+  mode            GameMode
+  startedAt       DateTime       @default(now())
+  endedAt         DateTime?
+  score           Int            @default(0)
+  correctCount    Int            @default(0)
+  totalCount      Int            @default(0)
   durationSeconds Int?
-  
-  // Arena specific
-  opponentId    String?
-  isWinner      Boolean?
-  eloChange     Int?
-
-  // Relations
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  note      Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  responses GameResponse[]
+  opponentId      String?
+  isWinner        Boolean?
+  eloChange       Int?
+  responses       GameResponse[]
+  note            Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model GameResponse {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   sessionId   String
   cardId      String
-  userAnswer  String?  @db.Text
+  userAnswer  String?
   isCorrect   Boolean
   timeTakenMs Int
-  hintsUsed   Int      @default(0)
-  createdAt   DateTime @default(now())
-
-  // Relations
-  session  GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  card     GameCard    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  hintsUsed   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  card        GameCard    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  session     GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model MasteryEntry {
-  id        String   @id @default(cuid())
-  userId    String
-  subject   String
-  topic     String
-  mastery   Float    @default(0)
+  id         String   @id @default(cuid())
+  userId     String
+  subject    String
+  topic      String
+  mastery    Float    @default(0)
   lastPlayed DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, subject, topic])
 }
-
-// ============================================
-// SUBSCRIPTIONS
-// ============================================
 
 model Subscription {
   id              String             @id @default(cuid())
@@ -274,64 +225,48 @@ model Subscription {
   paymentProvider String?
   externalId      String?
   createdAt       DateTime           @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ============================================
-// CREATOR ECONOMY
-// ============================================
-
 model CreatorWallet {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  balanceCents        Int      @default(0)
-  lifetimeEarningsCents Int    @default(0)
-  pendingCents        Int      @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Relations
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  earnings Earning[]
-  payouts  Payout[]
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  balanceCents          Int       @default(0)
+  lifetimeEarningsCents Int       @default(0)
+  pendingCents          Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  earnings              Earning[]
+  payouts               Payout[]
 }
 
 model Earning {
-  id              String   @id @default(cuid())
-  walletId        String
-  noteId          String
-  playMinutes     Int
-  amountCents     Int
+  id                String        @id @default(cuid())
+  walletId          String
+  noteId            String
+  playMinutes       Int
+  amountCents       Int
   qualityMultiplier Float
-  periodStart     DateTime
-  periodEnd       DateTime
-  createdAt       DateTime @default(now())
-
-  // Relations
-  wallet CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  note   Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  periodStart       DateTime
+  periodEnd         DateTime
+  createdAt         DateTime      @default(now())
+  note              Note          @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  wallet            CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 }
 
 model Payout {
-  id                String       @id @default(cuid())
+  id                String        @id @default(cuid())
   walletId          String
   amountCents       Int
-  status            PayoutStatus @default(PENDING)
+  status            PayoutStatus  @default(PENDING)
   method            PayoutMethod
   externalReference String?
-  requestedAt       DateTime     @default(now())
+  requestedAt       DateTime      @default(now())
   processedAt       DateTime?
-  notes             String?      @db.Text
-
-  // Relations
-  wallet CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  notes             String?
+  wallet            CreatorWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 }
-
-// ============================================
-// MODERATION
-// ============================================
 
 model Report {
   id          String       @id @default(cuid())
@@ -339,21 +274,15 @@ model Report {
   targetType  ReportTarget
   targetId    String
   reason      String
-  description String?      @db.Text
+  description String?
   status      ReportStatus @default(PENDING)
   reviewedBy  String?
   reviewedAt  DateTime?
   actionTaken String?
   createdAt   DateTime     @default(now())
-
-  // Relations
-  reporter User  @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
-  reviewer User? @relation("ReviewerReports", fields: [reviewedBy], references: [id])
+  reporter    User         @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewer    User?        @relation("ReviewerReports", fields: [reviewedBy], references: [id])
 }
-
-// ============================================
-// ENUMS
-// ============================================
 
 enum Language {
   TR
@@ -457,4 +386,10 @@ enum ReportStatus {
   REVIEWED
   RESOLVED
   DISMISSED
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
 }

@@ -20,13 +20,31 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-    const { data: session } = useSession();
+    const { data: session, update } = useSession();
     const [isSaving, setIsSaving] = useState(false);
+    const [name, setName] = useState(session?.user?.name || "");
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true);
-        // Simulate API call
-        setTimeout(() => setIsSaving(false), 1000);
+        try {
+            const res = await fetch("/api/user/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+            });
+
+            if (!res.ok) throw new Error("Güncelleme başarısız");
+
+            // Update session client-side
+            await update({ name });
+
+            alert("Profil başarıyla güncellendi!");
+        } catch (error) {
+            console.error(error);
+            alert("Bir hata oluştu.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
