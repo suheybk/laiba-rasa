@@ -35,6 +35,7 @@ export default function RootLayout({
     <html lang="tr" dir="ltr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased animated-gradient min-h-screen`}
+        suppressHydrationWarning
       >
         <SessionProvider>
           {/* Background orbs */}
