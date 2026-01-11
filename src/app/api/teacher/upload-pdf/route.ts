@@ -1,5 +1,3 @@
-"use server";
-
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -13,7 +11,7 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     const text = buffer.toString('latin1');
 
     // Extract text between stream/endstream tags (simplified PDF parsing)
-    const streamMatches = text.match(/stream[\r\n]+(.+?)[\r\n]+endstream/gs) || [];
+    const streamMatches = text.match(/stream[\r\n]+([\s\S]+?)[\r\n]+endstream/g) || [];
 
     let extractedText = "";
     for (const match of streamMatches) {

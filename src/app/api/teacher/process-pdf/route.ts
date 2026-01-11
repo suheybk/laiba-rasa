@@ -1,5 +1,3 @@
-"use server";
-
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -138,29 +136,24 @@ export async function POST(req: NextRequest) {
                 subject: subject || "Genel",
                 topic: "PDF İçeriği",
                 userId: user.id,
-                status: "PUBLISHED",
+                language: "TR",
                 qualityScore: Math.min(100, concepts.length * 10 + questions.length * 5),
                 concepts: {
-                    create: concepts.map((c, idx) => ({
+                    create: concepts.map((c) => ({
                         term: c.term,
                         definition: c.definition,
                         keywords: c.keywords,
-                        importance: 3,
-                        order: idx
+                        importance: 3
                     }))
                 },
                 questions: {
-                    create: questions.map((q, idx) => ({
+                    create: questions.map((q) => ({
                         questionText: q.questionText,
-                        questionType: "MULTIPLE_CHOICE",
-                        options: q.options,
-                        correctAnswer: q.options[q.correctIndex],
-                        order: idx
+                        answerConceptIds: [],
+                        difficulty: 3,
+                        bloomLevel: "UNDERSTAND"
                     }))
                 }
-            },
-            include: {
-                _count: { select: { concepts: true, questions: true } }
             }
         });
 
@@ -169,8 +162,8 @@ export async function POST(req: NextRequest) {
             note: {
                 id: note.id,
                 title: note.title,
-                conceptCount: note._count.concepts,
-                questionCount: note._count.questions,
+                conceptCount: concepts.length,
+                questionCount: questions.length,
                 qualityScore: note.qualityScore
             },
             message: `${concepts.length} kavram ve ${questions.length} soru oluşturuldu!`
