@@ -56,7 +56,10 @@ export async function POST(req: Request) {
                 options,
                 correctIndex,
                 difficulty: 1,
-                hint: concept.keywords[0] ? `İpucu: ${concept.keywords[0]}` : "Tanımı hatırla.",
+                hint: (() => {
+                    const keywords = Array.isArray(concept.keywords) ? concept.keywords as string[] : [];
+                    return keywords[0] ? `İpucu: ${keywords[0]}` : "Tanımı hatırla.";
+                })(),
                 feedback: {
                     correct: "Harika! Doğru tanım.",
                     incorrect: `Doğru cevap: ${concept.definition}`

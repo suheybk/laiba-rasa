@@ -83,7 +83,10 @@ export async function POST(req: Request) {
                 options: shuffledOptions,
                 correctIndex: correctIndex,
                 difficulty: c.importance || 1,
-                hint: c.keywords.length > 0 ? `İpucu: ${c.keywords[0]}` : "İpucu yok."
+                hint: (() => {
+                    const keywords = Array.isArray(c.keywords) ? c.keywords as string[] : [];
+                    return keywords.length > 0 ? `İpucu: ${keywords[0]}` : "İpucu yok.";
+                })()
             };
         });
 
