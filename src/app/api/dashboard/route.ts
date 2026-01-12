@@ -9,8 +9,27 @@ export async function GET() {
     try {
         const session = await getServerSession(authOptions);
 
+        // Demo modu: Session yoksa demo verileri döndür
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({
+                stats: {
+                    totalNotes: 5,
+                    gameHours: 12,
+                    avgMastery: 72,
+                    rank: "#142"
+                },
+                recentNotes: [
+                    { id: "demo-1", title: "Hücre Organelleri", updatedAt: "Bugün, 14:30", qualityScore: 85 },
+                    { id: "demo-2", title: "Osmanlı Kuruluş Dönemi", updatedAt: "Dün, 10:15", qualityScore: 78 },
+                    { id: "demo-3", title: "Türev ve İntegral", updatedAt: "2 gün önce", qualityScore: 92 }
+                ],
+                masteryData: [
+                    { subject: "Biyoloji", mastery: 85, color: "emerald" },
+                    { subject: "Tarih", mastery: 72, color: "amber" },
+                    { subject: "Matematik", mastery: 68, color: "violet" }
+                ],
+                isDemo: true
+            });
         }
 
         const userId = session.user.id;

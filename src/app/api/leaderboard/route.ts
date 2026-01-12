@@ -10,8 +10,18 @@ export async function GET() {
     try {
         const session = await getServerSession(authOptions);
 
+        // Demo modu: Session yoksa demo leaderboard döndür
         if (!session) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({
+                leaderboard: [
+                    { id: "demo-1", name: "Ahmet Y.", score: 2450, avatar: null },
+                    { id: "demo-2", name: "Zeynep K.", score: 2180, avatar: null },
+                    { id: "demo-3", name: "Mehmet A.", score: 1950, avatar: null },
+                    { id: "demo-4", name: "Fatma S.", score: 1720, avatar: null },
+                    { id: "demo-5", name: "Ali R.", score: 1580, avatar: null },
+                    { id: "demo-you", name: "Sen (Demo)", score: 1250, avatar: null },
+                ]
+            });
         }
 
         // Fetch users with note counts

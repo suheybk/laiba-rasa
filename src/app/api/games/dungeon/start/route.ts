@@ -8,11 +8,62 @@ import { z } from "zod";
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || !session.user?.email) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         const { noteId } = await req.json();
+
+        // Demo modu: Session yoksa veya demo not ID'si gelirse demo kartları döndür
+        if (!session || !session.user?.email || noteId?.startsWith("demo-")) {
+            return NextResponse.json({
+                sessionId: "demo-session-" + Date.now(),
+                cards: [
+                    {
+                        type: "DEFINITION",
+                        question: "Mitokondri nedir?",
+                        options: ["Hücrenin enerji santrali", "Hücre zarı", "Çekirdek", "Ribozom"],
+                        correctIndex: 0,
+                        difficulty: 1,
+                        hint: "ATP üretimi ile ilgili",
+                        feedback: { correct: "Harika!", incorrect: "Mitokondri hücrenin enerji santralidir." }
+                    },
+                    {
+                        type: "DEFINITION",
+                        question: "Osmanlı Devleti hangi yılda kuruldu?",
+                        options: ["1299", "1453", "1071", "1923"],
+                        correctIndex: 0,
+                        difficulty: 1,
+                        hint: "13. yüzyılın sonu",
+                        feedback: { correct: "Doğru!", incorrect: "Osmanlı 1299'da kuruldu." }
+                    },
+                    {
+                        type: "DEFINITION",
+                        question: "Türevin geometrik anlamı nedir?",
+                        options: ["Teğet doğrunun eğimi", "Alan", "Hacim", "Çevre"],
+                        correctIndex: 0,
+                        difficulty: 2,
+                        hint: "Eğim ile ilgili",
+                        feedback: { correct: "Mükemmel!", incorrect: "Türev teğet doğrunun eğimini verir." }
+                    },
+                    {
+                        type: "TERM_MATCH",
+                        question: "\"Hücrenin protein fabrikası\" tanımı hangisine aittir?",
+                        options: ["Ribozom", "Golgi", "Lizozom", "Sentrozom"],
+                        correctIndex: 0,
+                        difficulty: 2,
+                        hint: "Protein sentezi",
+                        feedback: { correct: "Doğru!", incorrect: "Ribozom protein üretir." }
+                    },
+                    {
+                        type: "DEFINITION",
+                        question: "İstanbul'un fethi hangi yılda gerçekleşti?",
+                        options: ["1453", "1299", "1071", "1517"],
+                        correctIndex: 0,
+                        difficulty: 1,
+                        hint: "Fatih Sultan Mehmet",
+                        feedback: { correct: "Harika!", incorrect: "İstanbul 1453'te fethedildi." }
+                    }
+                ],
+                isDemo: true
+            });
+        }
 
         // 1. Fetch Note with all data
         const note = await prisma.note.findUnique({
