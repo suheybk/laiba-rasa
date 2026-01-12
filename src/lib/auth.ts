@@ -57,6 +57,38 @@ export const authOptions: AuthOptions = {
         error: "/auth/error",
     },
     callbacks: {
+        async signIn({ user, account }) {
+            // Google OAuth ile giriş yapan kullanıcılar için username oluştur
+            if (account?.provider === "google" && user.email) {
+                const existingUser = await prisma.user.findUnique({
+                    where: { email: user.email },
+                });
+
+                if (!existingUser) {
+                    // Yeni kullanıcı - username oluştur
+                    const baseUsername = user.email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_");
+                    let username = baseUsername;
+                    let counter = 1;
+
+                    // Benzersiz username bul
+                    while (await prisma.user.findUnique({ where: { username } })) {
+                        username = `${baseUsername}${counter}`;
+                        counter++;
+                    }
+
+                    // Kullanıcıyı oluştur
+                    await prisma.user.create({
+                        data: {
+                            email: user.email,
+                            username,
+                            displayName: user.name || username,
+                            avatarUrl: user.image,
+                        },
+                    });
+                }
+            }
+            return true;
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
