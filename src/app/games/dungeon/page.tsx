@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useSound } from "@/hooks/use-sound";
 import { Badge } from "@/components/ui/badge";
 import {
     ArrowLeft,
@@ -42,6 +43,7 @@ function DungeonContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const noteId = searchParams.get("noteId");
+    const { playCorrect, playWrong, playLevelUp, playClick } = useSound();
 
     const [cards, setCards] = useState<GameCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -163,6 +165,7 @@ function DungeonContent() {
         const isCorrect = selectedOption === currentCard.correctIndex;
 
         if (isCorrect) {
+            playCorrect(); // 🔊 Doğru cevap sesi
             // Calculate score
             const basePoints = 100;
             const timeBonus = Math.floor(timeLeft * 2);
@@ -174,6 +177,7 @@ function DungeonContent() {
             setStreak((prev) => prev + 1);
             setCorrectAnswers((prev) => prev + 1);
         } else {
+            playWrong(); // 🔊 Yanlış cevap sesi
             setHearts((prev) => prev - 1);
             setStreak(0);
 
@@ -185,9 +189,11 @@ function DungeonContent() {
 
     const handleNextCard = () => {
         if (currentCardIndex >= cards.length - 1) {
+            playLevelUp(); // 🔊 Oyun tamamlama sesi
             setGameComplete(true);
             return;
         }
+        playClick(); // 🔊 Sonraki kart sesi
 
         setCurrentCardIndex((prev) => prev + 1);
         setSelectedOption(null);

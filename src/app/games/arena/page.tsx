@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useSound } from "@/hooks/use-sound";
 import {
     ArrowLeft,
     Timer,
@@ -29,6 +30,7 @@ interface GameCard {
 
 export default function ArenaGamePage() {
     const router = useRouter();
+    const { playCorrect, playWrong, playLevelUp } = useSound();
 
     // Game Data
     const [cards, setCards] = useState<GameCard[]>([]);
@@ -101,6 +103,7 @@ export default function ArenaGamePage() {
         const isCorrect = optionIndex === currentCard.correctIndex;
 
         if (isCorrect) {
+            playCorrect(); // 🔊 Doğru cevap sesi
             // Correct Logic
             setScore(s => s + 100 + (streak * 10)); // Base + Streak Bonus
             setStreak(s => {
@@ -113,6 +116,7 @@ export default function ArenaGamePage() {
             // Time Bonus!
             setTimeLeft(t => t + 2); // +2 Seconds for correct answer
         } else {
+            playWrong(); // 🔊 Yanlış cevap sesi
             // Wrong Logic
             setStreak(0);
             setWrongCount(w => w + 1);
