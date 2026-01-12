@@ -220,33 +220,72 @@ function DungeonContent() {
 
     // Game Over Screen
     if (gameOver) {
+        const accuracy = currentCardIndex > 0 ? Math.round((correctAnswers / currentCardIndex) * 100) : 0;
+        const xpEarned = Math.floor(score * 0.1);
+
         return (
             <div className="min-h-screen flex items-center justify-center px-4 dungeon-bg">
-                <Card gradient glow className="w-full max-w-md p-8 text-center">
-                    <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
-                        <X className="w-10 h-10 text-red-400" />
+                <Card gradient glow className="w-full max-w-md p-8 text-center animate-fade-in">
+                    {/* Icon */}
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center mx-auto mb-6 animate-bounce">
+                        <X className="w-12 h-12 text-red-400" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">Oyun Bitti!</h2>
-                    <p className="text-slate-400 mb-6">Canların tükendi, ama endişelenme - tekrar deneyebilirsin!</p>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className="p-4 bg-slate-800 rounded-xl">
+                    <h2 className="text-3xl font-bold mb-2">Oyun Bitti!</h2>
+                    <p className="text-slate-400 mb-8">Canların tükendi, ama endişelenme - tekrar deneyebilirsin!</p>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center mx-auto mb-2">
+                                <Zap className="w-5 h-5 text-amber-400" />
+                            </div>
                             <div className="text-2xl font-bold text-gradient">{score}</div>
-                            <div className="text-sm text-slate-500">Puan</div>
+                            <div className="text-xs text-slate-500">Puan</div>
                         </div>
-                        <div className="p-4 bg-slate-800 rounded-xl">
+                        <div className="p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center mx-auto mb-2">
+                                <Check className="w-5 h-5 text-emerald-400" />
+                            </div>
                             <div className="text-2xl font-bold text-emerald-400">{correctAnswers}/{currentCardIndex}</div>
-                            <div className="text-sm text-slate-500">Doğru</div>
+                            <div className="text-xs text-slate-500">Doğru Cevap</div>
+                        </div>
+                        <div className="p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center mx-auto mb-2">
+                                <Trophy className="w-5 h-5 text-violet-400" />
+                            </div>
+                            <div className="text-2xl font-bold text-violet-400">{accuracy}%</div>
+                            <div className="text-xs text-slate-500">Doğruluk</div>
+                        </div>
+                        <div className="p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center mx-auto mb-2">
+                                <Star className="w-5 h-5 text-indigo-400" />
+                            </div>
+                            <div className="text-2xl font-bold text-indigo-400">+{xpEarned}</div>
+                            <div className="text-xs text-slate-500">XP Kazandın</div>
                         </div>
                     </div>
 
+                    {/* Encouragement */}
+                    <div className="p-4 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 rounded-xl border border-violet-500/20 mb-6">
+                        <p className="text-sm text-slate-300">
+                            💡 <strong>İpucu:</strong> Zor sorularda ipucu kullanmayı dene!
+                        </p>
+                    </div>
+
+                    {/* Actions */}
                     <div className="space-y-3">
-                        <Button onClick={handleRestart} className="w-full">
-                            <RotateCcw className="w-4 h-4 mr-2" />
+                        <Button onClick={handleRestart} className="w-full" size="lg">
+                            <RotateCcw className="w-5 h-5 mr-2" />
                             Tekrar Dene
                         </Button>
-                        <Link href="/dashboard">
+                        <Link href="/games">
                             <Button variant="secondary" className="w-full">
+                                Diğer Oyunlar
+                            </Button>
+                        </Link>
+                        <Link href="/dashboard">
+                            <Button variant="ghost" className="w-full text-slate-400 hover:text-white">
                                 Dashboard'a Dön
                             </Button>
                         </Link>
@@ -260,48 +299,111 @@ function DungeonContent() {
     if (gameComplete) {
         const accuracy = Math.round((correctAnswers / cards.length) * 100);
         const stars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : accuracy >= 50 ? 1 : 0;
+        const xpEarned = score + (stars * 50) + (hearts * 25);
+        const perfectGame = correctAnswers === cards.length;
+        const noHints = hintsUsed === 0;
 
         return (
             <div className="min-h-screen flex items-center justify-center px-4 dungeon-bg">
-                <Card gradient glow className="w-full max-w-md p-8 text-center">
-                    <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-                        <Trophy className="w-10 h-10 text-emerald-400" />
+                <Card gradient glow className="w-full max-w-md p-8 text-center animate-fade-in">
+                    {/* Trophy Icon with Glow */}
+                    <div className="relative w-28 h-28 mx-auto mb-6">
+                        <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl animate-pulse" />
+                        <div className="relative w-full h-full rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                            <Trophy className="w-14 h-14 text-emerald-400" />
+                        </div>
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">Tebrikler! 🎉</h2>
+
+                    <h2 className="text-3xl font-bold mb-2">Tebrikler! 🎉</h2>
                     <p className="text-slate-400 mb-4">Bu zindanı başarıyla tamamladın!</p>
 
-                    {/* Stars */}
-                    <div className="flex justify-center gap-2 mb-6">
-                        {[1, 2, 3].map((star) => (
-                            <Star
+                    {/* Stars Animation */}
+                    <div className="flex justify-center gap-3 mb-6">
+                        {[1, 2, 3].map((star, i) => (
+                            <div
                                 key={star}
-                                className={`w-10 h-10 ${star <= stars ? "text-amber-400 fill-amber-400" : "text-slate-700"}`}
-                            />
+                                className="transform transition-all duration-500"
+                                style={{
+                                    animationDelay: `${i * 0.2}s`,
+                                    transform: star <= stars ? 'scale(1)' : 'scale(0.8)',
+                                    opacity: star <= stars ? 1 : 0.3
+                                }}
+                            >
+                                <Star
+                                    className={`w-12 h-12 ${star <= stars
+                                        ? "text-amber-400 fill-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]"
+                                        : "text-slate-700"
+                                        }`}
+                                />
+                            </div>
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 mb-8">
-                        <div className="p-3 bg-slate-800 rounded-xl">
+                    {/* Achievements */}
+                    {(perfectGame || noHints) && (
+                        <div className="flex justify-center gap-2 mb-6">
+                            {perfectGame && (
+                                <Badge variant="premium" className="animate-pulse">
+                                    🏆 Mükemmel Oyun!
+                                </Badge>
+                            )}
+                            {noHints && (
+                                <Badge variant="success">
+                                    💪 İpucusuz Tamamladın!
+                                </Badge>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-4 gap-2 mb-6">
+                        <div className="p-3 bg-slate-800/80 rounded-xl">
                             <div className="text-xl font-bold text-gradient">{score}</div>
-                            <div className="text-xs text-slate-500">Puan</div>
+                            <div className="text-[10px] text-slate-500">Puan</div>
                         </div>
-                        <div className="p-3 bg-slate-800 rounded-xl">
+                        <div className="p-3 bg-slate-800/80 rounded-xl">
                             <div className="text-xl font-bold text-emerald-400">{accuracy}%</div>
-                            <div className="text-xs text-slate-500">Doğruluk</div>
+                            <div className="text-[10px] text-slate-500">Doğruluk</div>
                         </div>
-                        <div className="p-3 bg-slate-800 rounded-xl">
-                            <div className="text-xl font-bold text-amber-400">{hearts}</div>
-                            <div className="text-xs text-slate-500">Can Kaldı</div>
+                        <div className="p-3 bg-slate-800/80 rounded-xl">
+                            <div className="text-xl font-bold text-red-400">{hearts}/3</div>
+                            <div className="text-[10px] text-slate-500">Can</div>
+                        </div>
+                        <div className="p-3 bg-slate-800/80 rounded-xl">
+                            <div className="text-xl font-bold text-amber-400">{hintsUsed}</div>
+                            <div className="text-[10px] text-slate-500">İpucu</div>
                         </div>
                     </div>
 
+                    {/* XP Earned Banner */}
+                    <div className="p-4 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20 mb-6">
+                        <div className="flex items-center justify-center gap-3">
+                            <Star className="w-6 h-6 text-amber-400" />
+                            <span className="text-2xl font-bold text-amber-400">+{xpEarned} XP</span>
+                            <Star className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Toplam kazanılan deneyim puanı</p>
+                    </div>
+
+                    {/* Actions */}
                     <div className="space-y-3">
-                        <Button className="w-full">
+                        <Button className="w-full" size="lg">
+                            <ChevronRight className="w-5 h-5 mr-2" />
                             Sonraki Zindan
-                            <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button variant="secondary" onClick={handleRestart}>
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                                Tekrarla
+                            </Button>
+                            <Link href="/games">
+                                <Button variant="secondary" className="w-full">
+                                    Diğer Oyunlar
+                                </Button>
+                            </Link>
+                        </div>
                         <Link href="/dashboard">
-                            <Button variant="secondary" className="w-full">
+                            <Button variant="ghost" className="w-full text-slate-400 hover:text-white">
                                 Dashboard'a Dön
                             </Button>
                         </Link>

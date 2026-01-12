@@ -175,44 +175,85 @@ export default function ArenaGamePage() {
 
     // GAME OVER SCREEN
     if (gameComplete) {
+        const totalAnswers = correctCount + wrongCount;
+        const accuracy = totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0;
+        const xpEarned = score + (bestStreak * 20);
+        const isPerfect = wrongCount === 0 && correctCount > 0;
+
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 page-transition">
-                <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800 relative overflow-hidden">
+                <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800 relative overflow-hidden animate-fade-in">
                     {/* Background Glow */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-500 via-orange-500 to-rose-500" />
 
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-rose-500/30">
-                        <Trophy className="w-10 h-10 text-white" />
+                    {/* Trophy with Glow */}
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                        <div className="absolute inset-0 bg-rose-500/30 rounded-full blur-xl animate-pulse" />
+                        <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                            <Trophy className="w-12 h-12 text-white" />
+                        </div>
                     </div>
 
-                    <h1 className="text-4xl font-bold mb-2 text-white">Süre Doldu!</h1>
-                    <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400 mb-8">
+                    <h1 className="text-3xl font-bold mb-2 text-white">Süre Doldu!</h1>
+
+                    {/* Score Display */}
+                    <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400 mb-6">
                         {score}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                        <div className="p-3 bg-slate-800/50 rounded-xl">
-                            <div className="text-2xl font-bold text-emerald-400">{correctCount}</div>
-                            <div className="text-xs text-slate-400">Doğru</div>
+                    {/* Achievement Badge */}
+                    {isPerfect && (
+                        <div className="mb-6">
+                            <Badge variant="premium" className="animate-pulse">
+                                🔥 Hatasız Oyun!
+                            </Badge>
                         </div>
-                        <div className="p-3 bg-slate-800/50 rounded-xl">
-                            <div className="text-2xl font-bold text-rose-400">{wrongCount}</div>
-                            <div className="text-xs text-slate-400">Yanlış</div>
+                    )}
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-4 gap-2 mb-6">
+                        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <div className="text-xl font-bold text-emerald-400">{correctCount}</div>
+                            <div className="text-[10px] text-slate-400">Doğru</div>
                         </div>
-                        <div className="p-3 bg-slate-800/50 rounded-xl">
-                            <div className="text-2xl font-bold text-amber-400">{bestStreak}</div>
-                            <div className="text-xs text-slate-400">En İyi Seri</div>
+                        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <div className="text-xl font-bold text-rose-400">{wrongCount}</div>
+                            <div className="text-[10px] text-slate-400">Yanlış</div>
+                        </div>
+                        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <div className="text-xl font-bold text-amber-400">{bestStreak}</div>
+                            <div className="text-[10px] text-slate-400">En İyi Seri</div>
+                        </div>
+                        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <div className="text-xl font-bold text-violet-400">{accuracy}%</div>
+                            <div className="text-[10px] text-slate-400">Doğruluk</div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-3">
+                    {/* XP Earned Banner */}
+                    <div className="p-4 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20 mb-6">
+                        <div className="flex items-center justify-center gap-3">
+                            <Zap className="w-6 h-6 text-amber-400" />
+                            <span className="text-2xl font-bold text-amber-400">+{xpEarned} XP</span>
+                            <Zap className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Toplam kazanılan deneyim puanı</p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="space-y-3">
                         <Button size="lg" className="w-full bg-rose-600 hover:bg-rose-700" onClick={restartGame}>
-                            <RotateCcw className="w-4 h-4 mr-2" />
+                            <RotateCcw className="w-5 h-5 mr-2" />
                             Tekrar Oyna
                         </Button>
+                        <Link href="/games">
+                            <Button variant="secondary" className="w-full">
+                                Diğer Oyunlar
+                            </Button>
+                        </Link>
                         <Link href="/dashboard">
-                            <Button variant="ghost" className="w-full">
-                                Ana Menüye Dön
+                            <Button variant="ghost" className="w-full text-slate-400 hover:text-white">
+                                Dashboard'a Dön
                             </Button>
                         </Link>
                     </div>
