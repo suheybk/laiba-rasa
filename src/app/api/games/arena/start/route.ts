@@ -10,8 +10,62 @@ export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
 
+        // Demo modu: Session yoksa demo kartları döndür
         if (!session || !session.user || !session.user.email) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({
+                gameId: "demo-arena-" + Date.now(),
+                cards: [
+                    {
+                        id: "1", type: "multiple-choice",
+                        question: "Mitokondri nedir?",
+                        options: ["Hücrenin enerji santrali", "Protein üretir", "Hücre zarı", "Çekirdek"],
+                        correctIndex: 0, difficulty: 1, hint: "ATP üretimi"
+                    },
+                    {
+                        id: "2", type: "multiple-choice",
+                        question: "Osmanlı Devleti hangi yılda kuruldu?",
+                        options: ["1299", "1453", "1071", "1923"],
+                        correctIndex: 0, difficulty: 1, hint: "13. yüzyıl"
+                    },
+                    {
+                        id: "3", type: "multiple-choice",
+                        question: "Türevin geometrik anlamı nedir?",
+                        options: ["Teğet doğrunun eğimi", "Alan", "Hacim", "Çevre"],
+                        correctIndex: 0, difficulty: 2, hint: "Eğim"
+                    },
+                    {
+                        id: "4", type: "multiple-choice",
+                        question: "\"Hücrenin protein fabrikası\" hangisidir?",
+                        options: ["Ribozom", "Golgi", "Lizozom", "Sentrozom"],
+                        correctIndex: 0, difficulty: 2, hint: "RNA"
+                    },
+                    {
+                        id: "5", type: "multiple-choice",
+                        question: "İstanbul'un fethi hangi yılda gerçekleşti?",
+                        options: ["1453", "1299", "1071", "1517"],
+                        correctIndex: 0, difficulty: 1, hint: "Fatih"
+                    },
+                    {
+                        id: "6", type: "multiple-choice",
+                        question: "İntegral neyi hesaplar?",
+                        options: ["Eğri altında kalan alan", "Eğim", "Hız", "İvme"],
+                        correctIndex: 0, difficulty: 2, hint: "Alan"
+                    },
+                    {
+                        id: "7", type: "multiple-choice",
+                        question: "DNA'nın yapı taşı nedir?",
+                        options: ["Nükleotid", "Amino asit", "Glikoz", "Yağ asidi"],
+                        correctIndex: 0, difficulty: 2, hint: "Baz"
+                    },
+                    {
+                        id: "8", type: "multiple-choice",
+                        question: "Malazgirt Savaşı hangi yılda yapıldı?",
+                        options: ["1071", "1453", "1299", "1923"],
+                        correctIndex: 0, difficulty: 1, hint: "Selçuklu"
+                    },
+                ],
+                isDemo: true
+            });
         }
 
         const user = await prisma.user.findUnique({
