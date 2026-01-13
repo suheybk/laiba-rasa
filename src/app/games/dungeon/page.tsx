@@ -43,7 +43,7 @@ function DungeonContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const noteId = searchParams.get("noteId");
-    const { playCorrect, playWrong, playLevelUp, playClick } = useSound();
+    const { playCorrect, playWrong, playLevelUp, playClick, playBgMusic, stopBgMusic } = useSound();
 
     const [cards, setCards] = useState<GameCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -96,6 +96,23 @@ function DungeonContent() {
         }
         fetchGame();
     }, [noteId]);
+
+    // 🎵 Arka plan müziği
+    useEffect(() => {
+        if (!isLoading && cards.length > 0) {
+            playBgMusic("dungeon");
+        }
+        return () => {
+            stopBgMusic();
+        };
+    }, [isLoading, cards.length, playBgMusic, stopBgMusic]);
+
+    // Oyun bittiğinde müziği durdur
+    useEffect(() => {
+        if (gameOver || gameComplete) {
+            stopBgMusic();
+        }
+    }, [gameOver, gameComplete, stopBgMusic]);
 
     const currentCard = cards[currentCardIndex];
     const progress = cards.length > 0 ? ((currentCardIndex) / cards.length) * 100 : 0;

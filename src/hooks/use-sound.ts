@@ -11,22 +11,33 @@ const SOUNDS = {
     countdown: "/sounds/countdown.wav",
 } as const;
 
-type SoundName = keyof typeof SOUNDS;
+// Arka plan müzikleri
+const BG_MUSIC = {
+    dungeon: "/sounds/dungeon-bg.mp3",
+    arena: "/sounds/arena-bg.mp3",
+} as const;
 
-// Ses ayarları için localStorage key
+type SoundName = keyof typeof SOUNDS;
+type BgMusicName = keyof typeof BG_MUSIC;
+
+// Ses ayarları için localStorage keys
 const SOUND_ENABLED_KEY = "laiba-sound-enabled";
+const MUSIC_ENABLED_KEY = "laiba-music-enabled";
 
 export function useSound() {
     const audioRefs = useRef<Map<SoundName, HTMLAudioElement>>(new Map());
+    const bgMusicRef = useRef<HTMLAudioElement | null>(null);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [musicEnabled, setMusicEnabled] = useState(true);
+    const [currentBgMusic, setCurrentBgMusic] = useState<BgMusicName | null>(null);
 
     // İlk yüklemede localStorage'dan oku
     useEffect(() => {
         if (typeof window !== "undefined") {
-            const saved = localStorage.getItem(SOUND_ENABLED_KEY);
-            if (saved !== null) {
-                setSoundEnabled(saved === "true");
-            }
+            const savedSound = localStorage.getItem(SOUND_ENABLED_KEY);
+            const savedMusic = localStorage.getItem(MUSIC_ENABLED_KEY);
+            if (savedSound !== null) setSoundEnabled(savedSound === "true");
+            if (savedMusic !== null) setMusicEnabled(savedMusic === "true");
         }
     }, []);
 
@@ -47,6 +58,10 @@ export function useSound() {
                 audio.src = "";
             });
             audioRefs.current.clear();
+            if (bgMusicRef.current) {
+                bgMusicRef.current.pause();
+                bgMusicRef.current = null;
+            }
         };
     }, []);
 
@@ -64,12 +79,85 @@ export function useSound() {
         }
     }, [soundEnabled]);
 
+    // Arka plan müziği çal
+    const playBgMusic = useCallback((name: BgMusicName, volume: number = 0.3) => {
+        if (!musicEnabled) return;
+
+        // Eğer aynı müzik zaten çalıyorsa, tekrar başlatma
+        if (currentBgMusic === name && bgMusicRef.current && !bgMusicRef.current.paused) {
+            return;
+        }
+
+        // Önceki müziği durdur
+        if (bgMusicRef.current) {
+            bgMusicRef.current.pause();
+        }
+
+        const audio = new Audio(BG_MUSIC[name]);
+        audio.loop = true;
+        audio.volume = 0; // Fade-in için 0'dan başla
+
+        audio.play().then(() => {
+            // Fade in
+            let currentVol = 0;
+            const fadeIn = setInterval(() => {
+                currentVol += 0.02;
+                if (currentVol >= volume) {
+                    audio.volume = volume;
+                    clearInterval(fadeIn);
+                } else {
+                    audio.volume = currentVol;
+                }
+            }, 50);
+        }).catch(() => {
+            // Autoplay policy
+        });
+
+        bgMusicRef.current = audio;
+        setCurrentBgMusic(name);
+    }, [musicEnabled, currentBgMusic]);
+
+    // Arka plan müziğini durdur
+    const stopBgMusic = useCallback(() => {
+        if (bgMusicRef.current) {
+            // Fade out
+            const audio = bgMusicRef.current;
+            let volume = audio.volume;
+            const fadeOut = setInterval(() => {
+                volume -= 0.02;
+                if (volume <= 0) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    clearInterval(fadeOut);
+                    bgMusicRef.current = null;
+                    setCurrentBgMusic(null);
+                } else {
+                    audio.volume = volume;
+                }
+            }, 50);
+        }
+    }, []);
+
     // Ses ayarını değiştir
     const toggleSound = useCallback(() => {
         setSoundEnabled((prev) => {
             const newValue = !prev;
             if (typeof window !== "undefined") {
                 localStorage.setItem(SOUND_ENABLED_KEY, String(newValue));
+            }
+            return newValue;
+        });
+    }, []);
+
+    // Müzik ayarını değiştir
+    const toggleMusic = useCallback(() => {
+        setMusicEnabled((prev) => {
+            const newValue = !prev;
+            if (typeof window !== "undefined") {
+                localStorage.setItem(MUSIC_ENABLED_KEY, String(newValue));
+            }
+            if (!newValue && bgMusicRef.current) {
+                bgMusicRef.current.pause();
             }
             return newValue;
         });
@@ -89,7 +177,13 @@ export function useSound() {
         playClick,
         playLevelUp,
         playCountdown,
+        playBgMusic,
+        stopBgMusic,
         soundEnabled,
+        musicEnabled,
         toggleSound,
+        toggleMusic,
+        currentBgMusic,
     };
 }
+

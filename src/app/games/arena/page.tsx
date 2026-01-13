@@ -30,7 +30,7 @@ interface GameCard {
 
 export default function ArenaGamePage() {
     const router = useRouter();
-    const { playCorrect, playWrong, playLevelUp } = useSound();
+    const { playCorrect, playWrong, playLevelUp, playBgMusic, stopBgMusic } = useSound();
 
     // Game Data
     const [cards, setCards] = useState<GameCard[]>([]);
@@ -73,6 +73,16 @@ export default function ArenaGamePage() {
 
         fetchGame();
     }, []);
+
+    // 🎵 Arka plan müziği
+    useEffect(() => {
+        if (isPlaying && !gameComplete) {
+            playBgMusic("arena");
+        }
+        return () => {
+            stopBgMusic();
+        };
+    }, [isPlaying, gameComplete, playBgMusic, stopBgMusic]);
 
     // Timer Logic
     useEffect(() => {
