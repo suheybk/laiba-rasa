@@ -20,6 +20,19 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        // Check if DATABASE_URL is available
+        if (!process.env.DATABASE_URL) {
+            console.error("DATABASE_URL is not set!");
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "DATABASE_URL yapılandırılmamış",
+                    debug: "Environment variable missing"
+                },
+                { status: 500 }
+            );
+        }
+
         const body = await request.json();
         const parsed = registerSchema.safeParse(body);
 
@@ -107,7 +120,7 @@ export async function POST(request: NextRequest) {
             {
                 success: false,
                 error: errorMessage,
-                details: process.env.NODE_ENV === "development" ? errorDetails : undefined
+                details: errorDetails // Temporarily show in production for debugging
             },
             { status: 500 }
         );
