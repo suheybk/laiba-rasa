@@ -23,7 +23,9 @@ import {
     Settings,
     LogOut,
     Crown,
-    Loader2
+    Loader2,
+    User,
+    Star
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -117,6 +119,7 @@ export default function DashboardPage() {
                     {/* Navigation */}
                     <nav className="flex-1 space-y-1">
                         <NavItem href="/dashboard" icon={Home} label="Ana Sayfa" active />
+                        <NavItem href="/profile" icon={User} label="Profilim" />
                         <NavItem href="/notes" icon={FileText} label="Notlarım" />
                         <NavItem href="/games" icon={Gamepad2} label="Oyun Modları" />
                         <NavItem href="/stats" icon={BarChart3} label="İstatistikler" />
@@ -325,17 +328,25 @@ export default function DashboardPage() {
                                                             index === 1 ? 'bg-slate-400/20 text-slate-400' :
                                                                 index === 2 ? 'bg-orange-700/20 text-orange-700' : 'bg-slate-800 text-slate-500'}
                                                      `}>
-                                                        {index + 1}
+                                                        {user.rank || index + 1}
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 font-bold text-xs uppercase">
                                                             {user.name.substring(0, 2)}
                                                         </div>
-                                                        <div className="font-medium text-sm">{user.name}</div>
+                                                        <div>
+                                                            <div className="font-medium text-sm">{user.name}</div>
+                                                            {user.level && (
+                                                                <div className="text-xs text-slate-500 flex items-center gap-1">
+                                                                    <Star className="w-3 h-3 text-amber-400" />
+                                                                    Seviye {user.level}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="text-sm font-bold text-slate-300">{user.score} XP</div>
+                                                    <div className="text-sm font-bold text-amber-400">{user.xp || user.score} XP</div>
                                                 </div>
                                             </div>
                                         ))
