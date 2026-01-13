@@ -85,10 +85,30 @@ export async function POST(request: NextRequest) {
             { success: true, data: { user } },
             { status: 201 }
         );
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Registration error:", error);
+
+        // Detaylı hata bilgisi
+        let errorMessage = "Kayıt sırasında bir hata oluştu";
+        let errorDetails = "";
+
+        if (error instanceof Error) {
+            errorDetails = error.message;
+
+            // Prisma/DB hatalarını kontrol et
+            if (error.message.includes("prisma") || error.message.includes("database")) {
+                errorMessage = "Veritabanı bağlantı hatası";
+            } else if (error.message.includes("Unique constraint")) {
+                errorMessage = "Bu kullanıcı zaten mevcut";
+            }
+        }
+
         return NextResponse.json(
-            { success: false, error: "Kayıt sırasında bir hata oluştu" },
+            {
+                success: false,
+                error: errorMessage,
+                details: process.env.NODE_ENV === "development" ? errorDetails : undefined
+            },
             { status: 500 }
         );
     }
