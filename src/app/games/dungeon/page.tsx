@@ -63,6 +63,15 @@ function DungeonContent() {
     const [timeLeft, setTimeLeft] = useState(30);
     const [gameOver, setGameOver] = useState(false);
     const [gameComplete, setGameComplete] = useState(false);
+    const [gameStartTime] = useState(Date.now());
+    const [gameResult, setGameResult] = useState<{
+        xpEarned: number;
+        bonuses: string[];
+        newLevel: number;
+        leveledUp: boolean;
+        streak: { current: number; best: number };
+    } | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Fetch Game Data
     useEffect(() => {
@@ -165,6 +174,7 @@ function DungeonContent() {
         setStreak(0);
         if (hearts <= 1) {
             setGameOver(true);
+            saveGameResult(false); // Save failed game
         } else {
             handleNextCard();
         }
@@ -200,7 +210,43 @@ function DungeonContent() {
 
             if (hearts <= 1) {
                 setGameOver(true);
+                saveGameResult(false); // Save failed game
             }
+        }
+    };
+
+    // Save game result to server
+    const saveGameResult = async (completed: boolean) => {
+        if (isSaving) return;
+        setIsSaving(true);
+
+        const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+        const totalAnswered = completed ? cards.length : currentCardIndex;
+
+        try {
+            const res = await fetch('/api/games/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gameMode: 'DUNGEON',
+                    noteId: noteId || undefined,
+                    correctAnswers,
+                    totalQuestions: totalAnswered,
+                    durationSeconds,
+                    averageResponseTimeMs: durationSeconds > 0 ? (durationSeconds * 1000) / totalAnswered : undefined,
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setGameResult(data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to save game:', error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -208,6 +254,7 @@ function DungeonContent() {
         if (currentCardIndex >= cards.length - 1) {
             playLevelUp(); // 🔊 Oyun tamamlama sesi
             setGameComplete(true);
+            saveGameResult(true); // Save completed game
             return;
         }
         playClick(); // 🔊 Sonraki kart sesi

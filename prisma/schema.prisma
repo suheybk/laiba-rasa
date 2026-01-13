@@ -22,6 +22,17 @@ model User {
   isBanned            Boolean        @default(false)
   onboardingCompleted Boolean        @default(false)
   role                Role           @default(STUDENT)
+  
+  // Gamification fields
+  xp                  Int            @default(0)
+  level               Int            @default(1)
+  totalGamesPlayed    Int            @default(0)
+  totalCorrectAnswers Int            @default(0)
+  totalQuestionsAnswered Int         @default(0)
+  currentStreak       Int            @default(0)
+  bestStreak          Int            @default(0)
+  lastPlayedAt        DateTime?
+  
   accounts            Account[]
   creatorWallet       CreatorWallet?
   following           Follow[]       @relation("Followers")

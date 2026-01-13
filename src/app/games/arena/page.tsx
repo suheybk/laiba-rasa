@@ -49,6 +49,14 @@ export default function ArenaGamePage() {
     const [bestStreak, setBestStreak] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [wrongCount, setWrongCount] = useState(0);
+    const [gameStartTime] = useState(Date.now());
+    const [gameResult, setGameResult] = useState<{
+        xpEarned: number;
+        bonuses: string[];
+        newLevel: number;
+        leveledUp: boolean;
+    } | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Fetch Game
     useEffect(() => {
@@ -101,9 +109,44 @@ export default function ArenaGamePage() {
         return () => clearInterval(timer);
     }, [isPlaying, gameComplete]);
 
+    // Save game result to server
+    const saveGameResult = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+
+        const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+        const totalAnswered = correctCount + wrongCount;
+
+        try {
+            const res = await fetch('/api/games/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gameMode: 'ARENA',
+                    correctAnswers: correctCount,
+                    totalQuestions: totalAnswered,
+                    durationSeconds,
+                    isWinner: correctCount > wrongCount,
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setGameResult(data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to save game:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const endGame = () => {
         setIsPlaying(false);
         setGameComplete(true);
+        saveGameResult();
     };
 
     const handleAnswer = (optionIndex: number) => {
