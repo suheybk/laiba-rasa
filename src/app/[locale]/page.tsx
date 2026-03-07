@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { useTranslations } from "next-intl";
 import {
+
   BookOpen,
   Gamepad2,
   Trophy,
@@ -16,6 +17,9 @@ import {
   ArrowRight,
   Check
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 export default function HomePage() {
   const t = useTranslations("HomePage");

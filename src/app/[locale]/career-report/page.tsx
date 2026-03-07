@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 import { CareerPDFExport } from "@/components/features/career/pdf-export";
 
+export const runtime = "edge";
+
+
+
 // ============================================
 // TYPES
 // ============================================

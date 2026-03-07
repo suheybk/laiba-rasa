@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 
 import { analyzeTextForCRAQ } from "@/lib/gemini";
 
+export const runtime = "edge";
+
+
+
 export const maxDuration = 60; // Allow longer timeout for AI generation
 
 export async function POST(req: NextRequest) {

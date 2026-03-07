@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import {
+
     Swords,
     Shield,
     Users,
@@ -13,6 +14,9 @@ import {
     Trophy,
     Star
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 export default function GamesPage() {
     const t = useTranslations("Games");

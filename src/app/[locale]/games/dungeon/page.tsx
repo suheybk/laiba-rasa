@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useSound } from "@/hooks/use-sound";
 import { Badge } from "@/components/ui/badge";
 import {
+
     ArrowLeft,
     Heart,
     Zap,
@@ -22,6 +23,9 @@ import {
     RotateCcw,
     Loader2
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 // Types
 interface GameCard {

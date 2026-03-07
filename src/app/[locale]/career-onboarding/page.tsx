@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+
     ArrowRight,
     ArrowLeft,
     Sparkles,
@@ -17,6 +18,9 @@ import {
     Loader2,
     Check,
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 // ============================================
 // TYPES

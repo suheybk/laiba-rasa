@@ -3,11 +3,15 @@ import { auth } from "@/lib/auth";
 
 import { prisma } from "@/lib/db";
 import {
+
     calculateGameXP,
     calculateLevel,
     calculateStreak,
     shouldLevelUp
 } from "@/lib/xp";
+
+export const runtime = "edge";
+
 
 interface GameCompleteRequest {
     gameMode: 'DUNGEON' | 'ARENA';

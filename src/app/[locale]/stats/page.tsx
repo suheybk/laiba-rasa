@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+
     BarChart3,
     Trophy,
     Target,
@@ -19,6 +20,9 @@ import {
     Gamepad2,
     Compass
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 interface StatsData {
     user: {

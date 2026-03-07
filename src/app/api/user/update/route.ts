@@ -5,6 +5,10 @@ import { auth } from "@/lib/auth";
 
 import { prisma } from "@/lib/db";
 
+export const runtime = "edge";
+
+
+
 export async function POST(req: Request) {
     try {
         const session = await auth();

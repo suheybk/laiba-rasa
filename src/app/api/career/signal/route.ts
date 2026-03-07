@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/db";
 
+export const runtime = "edge";
+
+
+
 // POST /api/career/signal — Record a career signal from gameplay
 export async function POST(request: NextRequest) {
     try {

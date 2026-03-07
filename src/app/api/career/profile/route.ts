@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/db";
 
+export const runtime = "edge";
+
+
+
 // GET /api/career/profile — Get current user's career profile
 export async function GET() {
     try {

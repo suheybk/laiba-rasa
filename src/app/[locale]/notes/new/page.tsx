@@ -28,6 +28,10 @@ import {
 
 import { PDFUpload } from "@/components/features/notes/pdf-upload";
 
+export const runtime = "edge";
+
+
+
 interface Concept {
     id: string;
     term: string;

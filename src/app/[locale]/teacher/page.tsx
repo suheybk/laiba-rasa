@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+
     Upload,
     FileText,
     Loader2,
@@ -19,6 +20,9 @@ import {
     Gamepad2,
     Shield
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 interface UploadResult {
     success: boolean;

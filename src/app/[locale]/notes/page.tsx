@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+
     BookOpen,
     Plus,
     Search,
@@ -15,6 +16,9 @@ import {
     Loader2,
     Clock
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 // Simple relative time formatter
 function formatRelativeTime(dateStr: string, locale: string): string {

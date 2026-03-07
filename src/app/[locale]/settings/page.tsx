@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
+
     Settings as SettingsIcon,
     User,
     LogOut,
@@ -18,6 +19,9 @@ import {
     CreditCard,
     Loader2
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 export default function SettingsPage() {
     const { data: session, update } = useSession();

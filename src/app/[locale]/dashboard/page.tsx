@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+
     Brain,
     Plus,
     BookOpen,
@@ -29,6 +30,9 @@ import {
     User,
     Star
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 export default function DashboardPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);

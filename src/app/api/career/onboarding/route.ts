@@ -299,3 +299,7 @@ async function getSceneContent(scene: number, userId: string) {
 
 // Need this import for the helper to work
 import { EducationLevel } from "@/types";
+
+export const runtime = "edge";
+
+

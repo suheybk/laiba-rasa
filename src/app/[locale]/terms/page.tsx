@@ -2,6 +2,10 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, ArrowLeft } from "lucide-react";
 
+export const runtime = "edge";
+
+
+
 export const metadata = {
     title: "Kullanım Şartları | L3IBA",
     description: "L3IBA kullanım şartları ve hizmet koşulları.",

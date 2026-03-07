@@ -5,6 +5,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
+export const runtime = "edge";
+
+
+
 // Validation Schema
 const noteSchema = z.object({
     title: z.string().min(1),

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+
     ArrowLeft,
     BookOpen,
     Link2,
@@ -19,6 +20,9 @@ import {
     Star,
     Loader2
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 interface Note {
     id: string;

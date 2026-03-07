@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Brain, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 
+export const runtime = "edge";
+
+
+
 export default function LoginPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);

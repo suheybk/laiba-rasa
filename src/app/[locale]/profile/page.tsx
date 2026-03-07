@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+
     ArrowLeft,
     User,
     Star,
@@ -19,6 +20,9 @@ import {
     Loader2,
     LogIn
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 interface ProfileData {
     isDemo: boolean;

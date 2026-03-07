@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSound } from "@/hooks/use-sound";
 import {
+
     ArrowLeft,
     Timer,
     Zap,
@@ -18,6 +19,9 @@ import {
     Loader2,
     Flame
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 interface GameCard {
     id: string;

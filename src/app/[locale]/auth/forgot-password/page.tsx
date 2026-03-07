@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Brain, Mail, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 
+export const runtime = "edge";
+
+
+
 export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);

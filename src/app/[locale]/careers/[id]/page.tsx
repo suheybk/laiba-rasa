@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+
     ArrowLeft,
     Briefcase,
     Calendar,
@@ -18,6 +19,9 @@ import {
     ArrowRight,
     Globe,
 } from "lucide-react";
+
+export const runtime = "edge";
+
 
 // ============================================
 // TYPES
