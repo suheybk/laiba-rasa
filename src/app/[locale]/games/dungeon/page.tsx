@@ -93,7 +93,7 @@ function DungeonContent() {
 
                 if (!res.ok) throw new Error("Oyun başlatılamadı");
 
-                const data = await res.json();
+                const data = (await res.json()) as any;
                 setCards(data.cards);
                 setSessionId(data.sessionId);
             } catch (error) {
@@ -238,7 +238,7 @@ function DungeonContent() {
             });
 
             if (res.ok) {
-                const data = await res.json();
+                const data = (await res.json()) as any;
                 if (data.success) {
                     setGameResult(data.data);
                 }

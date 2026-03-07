@@ -63,7 +63,7 @@ export default function ArenaGamePage() {
         const fetchGame = async () => {
             try {
                 const res = await fetch("/api/games/arena/start", { method: "POST" });
-                const data = await res.json();
+                const data = (await res.json()) as any;
 
                 if (!res.ok) {
                     throw new Error(data.details || "Oyun yüklenemedi");
@@ -131,7 +131,7 @@ export default function ArenaGamePage() {
             });
 
             if (res.ok) {
-                const data = await res.json();
+                const data = (await res.json()) as any;
                 if (data.success) {
                     setGameResult(data.data);
                 }

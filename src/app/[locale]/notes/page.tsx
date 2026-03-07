@@ -72,7 +72,7 @@ export default function NotesPage() {
             try {
                 const response = await fetch("/api/notes");
                 if (response.ok) {
-                    const data = await response.json();
+                    const data = (await response.json()) as any;
                     setNotes(data);
                 }
             } catch (error) {

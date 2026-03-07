@@ -46,7 +46,7 @@ export default function StatsPage() {
         const fetchStats = async () => {
             try {
                 const res = await fetch("/api/profile");
-                const json = await res.json();
+                const json = (await res.json()) as any;
                 if (json.success) {
                     setData({
                         user: {

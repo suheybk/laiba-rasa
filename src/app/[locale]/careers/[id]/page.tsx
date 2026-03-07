@@ -88,7 +88,7 @@ export default function CareerJobDetailPage() {
             setLoading(true);
             try {
                 const res = await fetch(`/api/career/jobs/${jobId}`);
-                const json = await res.json();
+                const json = (await res.json()) as any;
                 if (json.success) {
                     setJob(json.data);
                 } else {

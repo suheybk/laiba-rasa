@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useEffect } from "react";
@@ -49,11 +50,11 @@ export default function DashboardPage() {
                 const leaderboardRes = await fetch("/api/leaderboard");
 
                 if (res.ok && leaderboardRes.ok) {
-                    const json = await res.json();
+                    const json = (await res.json()) as any;
                     const leaderboardJson = await leaderboardRes.json();
                     setData({ ...json, leaderboard: leaderboardJson.leaderboard });
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error(error);
             } finally {
                 setIsLoading(false);

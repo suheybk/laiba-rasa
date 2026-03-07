@@ -209,7 +209,7 @@ export default function CareerReportPage() {
         setLoading(true);
         try {
             const res = await fetch("/api/career/report");
-            const json = await res.json();
+            const json = (await res.json()) as any;
             if (json.success && json.data) {
                 setReport(json.data);
             } else if (json.data === null) {

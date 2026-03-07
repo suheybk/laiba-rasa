@@ -112,7 +112,7 @@ export default function CareerOnboardingPage() {
         setError(null);
         try {
             const res = await fetch("/api/career/onboarding", { method: "POST" });
-            const json = await res.json();
+            const json = (await res.json()) as any;
             if (!json.success) {
                 setError(json.error || "Failed to start");
                 return;
@@ -177,7 +177,7 @@ export default function CareerOnboardingPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sceneId: currentScene, selections }),
             });
-            const json = await res.json();
+            const json = (await res.json()) as any;
 
             if (!json.success) {
                 setError(json.error || "Failed");

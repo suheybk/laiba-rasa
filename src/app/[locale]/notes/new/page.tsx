@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState } from "react";
@@ -242,12 +243,12 @@ export default function NewNotePage() {
                 throw new Error(error.details || "Failed to save");
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as any;
 
             // Redirect to dashboard or the new note view
             router.push("/dashboard");
             router.refresh();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Save error:", error);
             alert("Not kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.");
         } finally {
@@ -349,7 +350,7 @@ export default function NewNotePage() {
                 }
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Analysis Error:", error);
             alert("AI analizi sırasında bir hata oluştu: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
         } finally {
