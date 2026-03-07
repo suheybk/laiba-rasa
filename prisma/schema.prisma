@@ -32,6 +32,10 @@ model User {
   currentStreak       Int            @default(0)
   bestStreak          Int            @default(0)
   lastPlayedAt        DateTime?
+
+  // Career Discovery fields
+  educationLevel          EducationLevel?
+  onboardingCareerDone    Boolean        @default(false)
   
   accounts            Account[]
   creatorWallet       CreatorWallet?
@@ -44,6 +48,9 @@ model User {
   reviewedReports     Report[]       @relation("ReviewerReports")
   sessions            Session[]
   subscriptions       Subscription[]
+  careerSignals       CareerSignal[]
+  careerProfile       CareerProfile?
+  onboardingCareer    OnboardingCareerState?
 }
 
 model Account {
@@ -403,4 +410,160 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+}
+
+// ============================================
+// CAREER DISCOVERY ENUMS
+// ============================================
+
+enum RealizationStatus {
+  REALIZED          // Gerçekleşti
+  EMERGING          // Başlangıç Aşaması
+  PENDING           // Beklemede
+  NOT_YET           // Henüz Gerçekleşmedi
+  LIFECYCLE_END     // Ömrü Tamamlanma Aşamasında
+}
+
+enum EducationLevel {
+  PRIMARY           // İlkokul (1-4)
+  MIDDLE            // Ortaokul (5-8)
+  HIGH              // Lise (9-12)
+  UNIVERSITY        // Üniversite
+  ADULT             // Yetişkin
+}
+
+enum SignalSource {
+  ONBOARDING
+  DUNGEON
+  ARENA
+  RAID
+  PREFERENCE
+  BUILDER
+}
+
+// ============================================
+// CAREER DISCOVERY MODELS
+// ============================================
+
+model CareerCategory {
+  id            String     @id @default(cuid())
+  slug          String     @unique        // e.g. "ai", "metaverse", "data"
+  nameTr        String
+  nameAr        String     @default("")
+  nameEn        String     @default("")
+  descriptionTr String     @default("")
+  descriptionAr String     @default("")
+  descriptionEn String     @default("")
+  icon          String     @default("")   // emoji or icon class
+  colorHex      String     @default("#f5c518")
+  worldNameTr   String     @default("")   // e.g. "Zeka Kalesi"
+  worldNameEn   String     @default("")
+  worldImage    String     @default("")   // path to world illustration
+  heroNameTr    String     @default("")   // e.g. "Kod Büyücüsü"
+  heroNameEn    String     @default("")
+  heroImage     String     @default("")   // path to hero icon
+  sortOrder     Int        @default(0)
+  createdAt     DateTime   @default(now())
+
+  jobs          CareerJob[]
+  signals       CareerSignal[]
+  questions     CareerDiscoveryQuestion[]
+
+  @@index([slug])
+}
+
+model CareerJob {
+  id                String             @id @default(cuid())
+  categoryId        String
+  nameTr            String
+  nameEn            String             @default("")
+  nameAr            String             @default("")
+  descriptionTr     String             @default("")
+  descriptionEn     String             @default("")
+  descriptionAr     String             @default("")
+  heroRoleTr        String             @default("")   // e.g. "Veri Kâşifi"
+  heroRoleEn        String             @default("")
+  superPowerTr      String             @default("")   // e.g. "Kaotik bilgi yığınlarından düzen çıkarır"
+  superPowerEn      String             @default("")
+  yearPredicted     Int                @default(2026)
+  realizationStatus RealizationStatus  @default(NOT_YET)
+  jobNumber         Int                @default(0)     // original row number from Excel
+  sortOrder         Int                @default(0)
+  createdAt         DateTime           @default(now())
+
+  category          CareerCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([realizationStatus])
+  @@index([yearPredicted])
+}
+
+model CareerSignal {
+  id            String        @id @default(cuid())
+  userId        String
+  categoryId    String
+  sourceType    SignalSource
+  weight        Float         @default(1.0)
+  signalData    Json?         // selection detail
+  sessionId     String?       // FK to GameSession (optional)
+  createdAt     DateTime      @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      CareerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, categoryId])
+}
+
+model CareerProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  primaryCategoryId     String?
+  secondaryCategoryIds  Json     @default("[]")   // array of category IDs
+  topJobs               Json     @default("[]")   // array of { jobId, score }
+  categoryScores        Json     @default("{}")   // { categoryId: normalizedScore }
+  confidenceScore       Float    @default(0)
+  dataSessionsCount     Int      @default(0)
+  heroType              String   @default("")     // e.g. "Veri Kâşifi"
+  version               Int      @default(0)      // Bayesian update count
+  lastUpdated           DateTime @default(now())
+  createdAt             DateTime @default(now())
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CareerDiscoveryQuestion {
+  id              String          @id @default(cuid())
+  questionNumber  Int             @default(0)
+  educationLevel  EducationLevel
+  sectionTitle    String          @default("")     // e.g. "Temel İlgi ve Eğlence Soruları"
+  questionTr      String
+  questionAr      String          @default("")
+  questionEn      String          @default("")
+  suggestedJobs   String          @default("")     // comma-separated job names
+  categoryTag     String          @default("")     // e.g. "Tasarım & Eğitim"
+  answerOptions   Json?           // { options: [{ text, categoryWeights: { catSlug: weight } }] }
+  gameContext     String          @default("")     // e.g. "dungeon_scene_3"
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+
+  categoryId      String?
+  category        CareerCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([educationLevel])
+}
+
+model OnboardingCareerState {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  currentScene    Int       @default(1)      // 1-6
+  selections      Json      @default("{}")   // all scene selections
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

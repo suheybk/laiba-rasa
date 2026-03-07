@@ -13,6 +13,7 @@ const loginSchema = z.object({
 });
 
 export const authOptions: AuthOptions = {
+    secret: process.env.NEXTAUTH_SECRET,
     adapter: PrismaAdapter(prisma) as AuthOptions["adapter"],
     providers: [
         GoogleProvider({
@@ -103,3 +104,24 @@ export const authOptions: AuthOptions = {
         },
     },
 };
+
+export async function isUserPremium(userId: string): Promise<boolean> {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true },
+        });
+        if (user?.role === "ADMIN") return true;
+
+        const subscription = await prisma.subscription.findFirst({
+            where: {
+                userId,
+                status: { in: ["ACTIVE", "TRIAL"] },
+                endsAt: { gt: new Date() },
+            },
+        });
+        return !!subscription;
+    } catch {
+        return false;
+    }
+}

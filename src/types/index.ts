@@ -9,6 +9,9 @@ import {
     SubscriptionTier,
     SubscriptionPeriod,
     SubscriptionStatus,
+    RealizationStatus,
+    EducationLevel,
+    SignalSource,
 } from "@prisma/client";
 
 // ============================================
@@ -261,4 +264,93 @@ export interface LocaleStrings {
         score: string;
         mastery: string;
     };
+}
+
+// ============================================
+// CAREER DISCOVERY TYPES
+// ============================================
+
+export interface CareerCategoryData {
+    id: string;
+    slug: string;
+    nameTr: string;
+    nameEn: string;
+    nameAr: string;
+    descriptionTr: string;
+    icon: string;
+    colorHex: string;
+    worldNameTr: string;
+    worldNameEn: string;
+    worldImage: string;
+    heroNameTr: string;
+    heroNameEn: string;
+    heroImage: string;
+    jobCount?: number;
+}
+
+export interface CareerJobData {
+    id: string;
+    categoryId: string;
+    nameTr: string;
+    nameEn: string;
+    heroRoleTr: string;
+    heroRoleEn: string;
+    superPowerTr: string;
+    superPowerEn: string;
+    yearPredicted: number;
+    realizationStatus: RealizationStatus;
+    jobNumber: number;
+    category?: CareerCategoryData;
+}
+
+export interface CareerProfileData {
+    id: string;
+    userId: string;
+    primaryCategoryId: string | null;
+    secondaryCategoryIds: string[];
+    topJobs: Array<{ jobId: string; score: number }>;
+    categoryScores: Record<string, number>;
+    confidenceScore: number;
+    dataSessionsCount: number;
+    heroType: string;
+    version: number;
+    lastUpdated: Date;
+}
+
+export interface CareerSignalData {
+    categoryId: string;
+    sourceType: SignalSource;
+    weight: number;
+    signalData?: Record<string, unknown>;
+    sessionId?: string;
+}
+
+export interface CareerQuestionData {
+    id: string;
+    questionNumber: number;
+    educationLevel: EducationLevel;
+    sectionTitle: string;
+    questionTr: string;
+    questionEn: string;
+    questionAr: string;
+    suggestedJobs: string;
+    categoryTag: string;
+    answerOptions?: {
+        options: Array<{
+            text: string;
+            categoryWeights: Record<string, number>;
+        }>;
+    };
+}
+
+export interface CareerReportData {
+    heroType: string;
+    heroImage: string;
+    primaryCategory: CareerCategoryData;
+    secondaryCategories: CareerCategoryData[];
+    topJobs: Array<CareerJobData & { matchScore: number }>;
+    radarData: Array<{ category: string; score: number; color: string }>;
+    confidenceScore: number;
+    dataSessionsCount: number;
+    learningRecommendations: string[];
 }

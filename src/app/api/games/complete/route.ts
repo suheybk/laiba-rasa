@@ -128,6 +128,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Career signal collection — async, non-blocking
+        collectCareerSignals(user.id, noteId, gameMode, correctAnswers, totalQuestions, gameSessionId)
+            .catch(() => { }); // silent fail — career signals are non-critical
+
         return NextResponse.json({
             success: true,
             data: {
@@ -158,5 +162,91 @@ export async function POST(request: NextRequest) {
             { success: false, error: "Oyun kaydedilemedi" },
             { status: 500 }
         );
+    }
+}
+
+// ============================================
+// CAREER SIGNAL COLLECTION (Hidden Measurement)
+// ============================================
+async function collectCareerSignals(
+    userId: string,
+    noteId: string | undefined,
+    gameMode: string,
+    correctAnswers: number,
+    totalQuestions: number,
+    sessionId: string | null
+) {
+    try {
+        if (!noteId || noteId.startsWith('demo')) return;
+
+        // 1. Get note's subject/topic to infer category
+        const note = await prisma.note.findUnique({
+            where: { id: noteId },
+            select: { subject: true, topic: true },
+        });
+
+        if (!note?.subject) return;
+
+        // 2. Map subject/topic to career categories
+        const subjectLower = (note.subject + ' ' + (note.topic || '')).toLowerCase();
+        const categoryMappings: Record<string, string[]> = {
+            'ai': ['yapay zeka', 'ai', 'machine learning', 'makine öğren', 'derin öğren', 'deep learning', 'neural', 'sinir ağ'],
+            'data': ['veri', 'data', 'istatistik', 'analiz', 'büyük veri', 'big data'],
+            'cyber': ['siber', 'güvenlik', 'security', 'şifre', 'kriptografi', 'blockchain'],
+            'robotics': ['robot', 'otonom', 'drone', 'dron', 'mekatronik'],
+            'health': ['sağlık', 'biyoloji', 'tıp', 'genom', 'biyoteknoloji', 'hücre', 'dna'],
+            'environment': ['çevre', 'iklim', 'enerji', 'sürdürülebilir', 'ekoloji'],
+            'law': ['hukuk', 'adalet', 'etik', 'yasa', 'regülasyon'],
+            'marketing': ['pazarlama', 'reklam', 'medya', 'iletişim', 'sosyal medya'],
+            'education': ['eğitim', 'öğretim', 'pedagoji', 'koçluk'],
+            'design': ['tasarım', 'sanat', 'grafik', 'ux', 'ui', 'mimari'],
+            'finance': ['finans', 'ekonomi', 'muhasebe', 'borsa', 'kripto'],
+            'psychology': ['psikoloji', 'davranış', 'ruh sağlığı', 'nörobilim'],
+            'gaming': ['oyun', 'game', 'e-spor', 'esport'],
+            'science': ['fizik', 'kimya', 'uzay', 'astronomi', 'kuantum', 'nano', 'matematik'],
+            'metaverse': ['metaverse', 'sanal gerçeklik', 'vr', 'ar', '3d'],
+        };
+
+        const matchedSlugs: string[] = [];
+        for (const [slug, keywords] of Object.entries(categoryMappings)) {
+            if (keywords.some(kw => subjectLower.includes(kw))) {
+                matchedSlugs.push(slug);
+            }
+        }
+
+        if (matchedSlugs.length === 0) return;
+
+        // 3. Calculate signal weight based on performance
+        const accuracy = totalQuestions > 0 ? correctAnswers / totalQuestions : 0;
+        const baseWeight = gameMode === 'DUNGEON' ? 1.5 : gameMode === 'ARENA' ? 2.0 : 1.0;
+        const performanceMultiplier = 0.5 + accuracy; // 0.5 to 1.5
+        const signalWeight = baseWeight * performanceMultiplier;
+
+        // 4. Record signals for matched categories
+        const categories = await prisma.careerCategory.findMany({
+            where: { slug: { in: matchedSlugs } },
+        });
+
+        for (const cat of categories) {
+            await prisma.careerSignal.create({
+                data: {
+                    userId,
+                    categoryId: cat.id,
+                    sourceType: gameMode === 'DUNGEON' ? 'DUNGEON' : gameMode === 'ARENA' ? 'ARENA' : 'RAID',
+                    weight: signalWeight,
+                    signalData: {
+                        noteSubject: note.subject,
+                        noteTopic: note.topic,
+                        accuracy,
+                        correctAnswers,
+                        totalQuestions,
+                    },
+                    sessionId,
+                },
+            });
+        }
+    } catch (err) {
+        // Silent fail — career signals are non-critical
+        console.log('Career signal collection skipped:', (err as Error).message);
     }
 }

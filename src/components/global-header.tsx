@@ -1,14 +1,17 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/lib/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, LogOut, User, Gamepad2 } from "lucide-react";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { Brain, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 
 export function GlobalHeader() {
     const { data: session, status } = useSession();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const t = useTranslations("Navigation");
 
     const isLoading = status === "loading";
     const isLoggedIn = !!session?.user;
@@ -30,25 +33,25 @@ export function GlobalHeader() {
                         {isLoggedIn ? (
                             <>
                                 <Link href="/dashboard" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Dashboard
+                                    {t("dashboard")}
                                 </Link>
                                 <Link href="/notes" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Notlarım
+                                    {t("notes")}
                                 </Link>
                                 <Link href="/games" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Oyunlar
+                                    {t("games")}
                                 </Link>
                             </>
                         ) : (
                             <>
                                 <Link href="/dashboard" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Demo
+                                    {t("demo")}
                                 </Link>
                                 <Link href="/#features" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Özellikler
+                                    {t("features")}
                                 </Link>
                                 <Link href="/#pricing" className="text-slate-300 hover:text-white transition-colors text-sm">
-                                    Fiyatlandırma
+                                    {t("pricing")}
                                 </Link>
                             </>
                         )}
@@ -56,6 +59,7 @@ export function GlobalHeader() {
 
                     {/* Auth Buttons */}
                     <div className="hidden md:flex items-center gap-3">
+                        <LanguageSwitcher />
                         {isLoading ? (
                             <div className="w-20 h-9 bg-slate-800 rounded-lg animate-pulse" />
                         ) : isLoggedIn ? (
@@ -63,7 +67,7 @@ export function GlobalHeader() {
                                 <Link href="/settings">
                                     <Button variant="ghost" size="sm" className="gap-2">
                                         <User className="w-4 h-4" />
-                                        {session.user?.name?.split(" ")[0] || "Profil"}
+                                        {session.user?.name?.split(" ")[0] || t("profile")}
                                     </Button>
                                 </Link>
                                 <Button
@@ -78,22 +82,25 @@ export function GlobalHeader() {
                         ) : (
                             <>
                                 <Link href="/auth/login">
-                                    <Button variant="ghost" size="sm">Giriş Yap</Button>
+                                    <Button variant="ghost" size="sm">{t("login")}</Button>
                                 </Link>
                                 <Link href="/auth/register">
-                                    <Button size="sm">Ücretsiz Başla</Button>
+                                    <Button size="sm">{t("register")}</Button>
                                 </Link>
                             </>
                         )}
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden p-2 text-slate-400 hover:text-white"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
+                    <div className="flex items-center gap-2 md:hidden">
+                        <LanguageSwitcher />
+                        <button
+                            className="p-2 text-slate-400 hover:text-white"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Mobile Menu */}
@@ -103,31 +110,31 @@ export function GlobalHeader() {
                             {isLoggedIn ? (
                                 <>
                                     <Link href="/dashboard" className="py-2 text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                                        Dashboard
+                                        {t("dashboard")}
                                     </Link>
                                     <Link href="/notes" className="py-2 text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                                        Notlarım
+                                        {t("notes")}
                                     </Link>
                                     <Link href="/games" className="py-2 text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                                        Oyunlar
+                                        {t("games")}
                                     </Link>
                                     <button
                                         onClick={() => signOut({ callbackUrl: "/" })}
                                         className="py-2 text-left text-red-400 hover:text-red-300"
                                     >
-                                        Çıkış Yap
+                                        {t("logout")}
                                     </button>
                                 </>
                             ) : (
                                 <>
                                     <Link href="/dashboard" className="py-2 text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                                        Demo
+                                        {t("demo")}
                                     </Link>
                                     <Link href="/auth/login" className="py-2 text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                                        Giriş Yap
+                                        {t("login")}
                                     </Link>
                                     <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                                        <Button className="w-full mt-2">Ücretsiz Başla</Button>
+                                        <Button className="w-full mt-2">{t("register")}</Button>
                                     </Link>
                                 </>
                             )}
