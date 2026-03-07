@@ -1,3 +1,4 @@
+export const dynamicParams = false;
 "use client";
 
 import { useState } from "react";
