@@ -1,9 +1,10 @@
+import { setRequestLocale } from 'next-intl/server';
 import { Link } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import {
 
   BookOpen,
@@ -18,13 +19,14 @@ import {
   Check
 } from "lucide-react";
 
-export const runtime = "edge";
 
 
-export default function HomePage() {
-  const t = useTranslations("HomePage");
-  const tNav = useTranslations("Navigation");
-  const tPricing = useTranslations("HomePage.pricing");
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "HomePage" });
+  const tNav = await getTranslations({ locale, namespace: "Navigation" });
+  const tPricing = await getTranslations({ locale, namespace: "HomePage.pricing" });
 
   return (
     <div className="min-h-screen page-transition">

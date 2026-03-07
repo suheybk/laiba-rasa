@@ -19,7 +19,6 @@ import {
     Gamepad2
 } from "lucide-react";
 
-export const runtime = "edge";
 
 
 const onboardingSteps = [
@@ -88,8 +87,7 @@ const onboardingSteps = [
     },
 ];
 
-export default function OnboardingPage() {
-    const [currentStep, setCurrentStep] = useState(0);
+export default function OnboardingPage() {const [currentStep, setCurrentStep] = useState(0);
     const step = onboardingSteps[currentStep];
 
     const nextStep = () => {

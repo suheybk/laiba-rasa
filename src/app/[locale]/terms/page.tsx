@@ -1,8 +1,8 @@
+import { setRequestLocale } from 'next-intl/server';
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, ArrowLeft } from "lucide-react";
 
-export const runtime = "edge";
 
 
 
@@ -11,7 +11,9 @@ export const metadata = {
     description: "L3IBA kullanım şartları ve hizmet koşulları.",
 };
 
-export default function TermsPage() {
+export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
     return (
         <div className="min-h-screen py-20 px-4 page-transition">
             <div className="container mx-auto max-w-3xl">

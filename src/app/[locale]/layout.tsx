@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/providers/session-provider";
 import "../globals.css";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +28,14 @@ export const metadata: Metadata = {
   },
 };
 
+export function generateStaticParams() {
+  return [
+    { locale: 'tr' },
+    { locale: 'en' },
+    { locale: 'ar' }
+  ];
+}
+
 export default async function RootLayout({
   children,
   params,
@@ -36,6 +44,7 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const messages = await getMessages();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 

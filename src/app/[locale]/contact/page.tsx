@@ -7,12 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Brain, Mail, User, MessageSquare, ArrowLeft, Loader2, CheckCircle, Send } from "lucide-react";
 
-export const runtime = "edge";
 
 
 
-export default function ContactPage() {
-    const [isLoading, setIsLoading] = useState(false);
+export default function ContactPage() {const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
