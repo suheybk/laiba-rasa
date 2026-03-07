@@ -1,6 +1,7 @@
-export const dynamicParams = false;
 "use client";
 
+
+export const dynamicParams = false;
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
