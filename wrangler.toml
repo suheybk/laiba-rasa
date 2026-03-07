@@ -5,5 +5,5 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "laiba-prod"
-database_id = "YOUR_D1_DATABASE_ID_HERE"
-preview_database_id = "YOUR_D1_PREVIEW_DATABASE_ID_HERE"
+database_id = "5684cf5a-9609-450a-bc7f-36386d560544"
+preview_database_id = "5684cf5a-9609-450a-bc7f-36386d560544"
