@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions, isUserPremium } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { isUserPremium } from "@/lib/auth";
 
 // GET /api/career/jobs/[id] — Get a single job with full details
 export async function GET(
@@ -63,7 +63,7 @@ export async function GET(
         });
 
         // Check if user is premium
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const isPremium = session?.user?.id ? await isUserPremium(session.user.id) : false;
 
         return NextResponse.json({

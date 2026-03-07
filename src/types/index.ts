@@ -1,18 +1,18 @@
-import {
-    Language,
-    Visibility,
-    ReviewStatus,
-    RelationshipType,
-    BloomLevel,
-    CardType,
-    GameMode,
-    SubscriptionTier,
-    SubscriptionPeriod,
-    SubscriptionStatus,
-    RealizationStatus,
-    EducationLevel,
-    SignalSource,
-} from "@prisma/client";
+export type Language = "TR" | "AR" | "EN";
+export type Visibility = "PRIVATE" | "PUBLIC";
+export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type RelationshipType = "PRODUCES" | "REQUIRES" | "CAUSES" | "PART_OF" | "SIMILAR_TO" | "OPPOSITE_OF" | "LEADS_TO" | "DEPENDS_ON";
+export type BloomLevel = "REMEMBER" | "UNDERSTAND" | "APPLY" | "ANALYZE" | "EVALUATE" | "CREATE";
+export type CardType = "DEFINITION" | "MATCHING" | "ORDERING" | "GAP_FILL" | "ERROR_SPOTTING" | "EXPLANATION";
+export type GameMode = "DUNGEON" | "ARENA" | "RAID";
+export type SubscriptionTier = "FREE" | "BASIC" | "PRO" | "PRO_MAX";
+export type SubscriptionPeriod = "WEEKLY" | "MONTHLY" | "YEARLY";
+export type SubscriptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED" | "TRIAL";
+export type RealizationStatus = "REALIZED" | "EMERGING" | "PENDING" | "NOT_YET" | "LIFECYCLE_END";
+export type EducationLevel = "PRIMARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "ADULT";
+export type SignalSource = "ONBOARDING" | "DUNGEON" | "ARENA" | "RAID" | "PREFERENCE" | "BUILDER";
+export type Role = "STUDENT" | "TEACHER" | "ADMIN";
+export type KycStatus = "PENDING" | "VERIFIED" | "REJECTED";
 
 // ============================================
 // NOTE TYPES

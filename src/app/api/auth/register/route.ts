@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import { hash } from "bcrypt-ts";
 import { z } from "zod";
 
 // Inline schema to avoid Prisma dependency issues during build
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(password, 12);
+        const hashedPassword = await hash(password, 12);
 
         // Create user
         const user = await prisma.user.create({

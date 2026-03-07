@@ -1,11 +1,11 @@
-import { PrismaClient, Language, Visibility, ReviewStatus, BloomLevel, CardType } from '@prisma/client';
-
+import { PrismaClient } from "@prisma/client";
+import { Language, Visibility, ReviewStatus, RelationshipType, BloomLevel, CardType, GameMode, SubscriptionTier, SubscriptionPeriod, SubscriptionStatus, RealizationStatus, EducationLevel, SignalSource, Role, KycStatus } from "../src/types";
 const prisma = new PrismaClient();
 
 const exampleNotes = [
     {
         title: "Basic Arabic Greetings",
-        language: Language.AR,
+        language: "AR",
         subject: "Arabic",
         topic: "Greetings",
         concepts: [
@@ -22,7 +22,7 @@ const exampleNotes = [
     },
     {
         title: "Introduction to React Hooks",
-        language: Language.EN,
+        language: "EN",
         subject: "Programming",
         topic: "React",
         concepts: [
@@ -38,7 +38,7 @@ const exampleNotes = [
     },
     {
         title: "Osmanlı Tarihi - Kuruluş",
-        language: Language.TR,
+        language: "TR",
         subject: "Tarih",
         topic: "Osmanlı",
         concepts: [
@@ -54,7 +54,7 @@ const exampleNotes = [
     },
     {
         title: "Photosynthesis Basics",
-        language: Language.EN,
+        language: "EN",
         subject: "Biology",
         topic: "Plant Physiology",
         concepts: [
@@ -69,7 +69,7 @@ const exampleNotes = [
     },
     {
         title: "Temel Matematik - Üslü Sayılar",
-        language: Language.TR,
+        language: "TR",
         subject: "Matematik",
         topic: "Cebir",
         concepts: [
@@ -84,7 +84,7 @@ const exampleNotes = [
     },
     {
         title: "Geography of Turkey",
-        language: Language.EN,
+        language: "EN",
         subject: "Geography",
         topic: "Turkey",
         concepts: [
@@ -99,7 +99,7 @@ const exampleNotes = [
     },
     {
         title: "Introduction to Python",
-        language: Language.EN,
+        language: "EN",
         subject: "Computer Science",
         topic: "Python",
         concepts: [
@@ -114,7 +114,7 @@ const exampleNotes = [
     },
     {
         title: "İslam Tarihi - Dört Halife",
-        language: Language.TR,
+        language: "TR",
         subject: "Tarih",
         topic: "İslam Tarihi",
         concepts: [
@@ -129,7 +129,7 @@ const exampleNotes = [
     },
     {
         title: "Newton's Laws of Motion",
-        language: Language.EN,
+        language: "EN",
         subject: "Physics",
         topic: "Mechanics",
         concepts: [
@@ -144,7 +144,7 @@ const exampleNotes = [
     },
     {
         title: "Edebiyat - Şiir Bilgisi",
-        language: Language.TR,
+        language: "TR",
         subject: "Edebiyat",
         topic: "Şiir",
         concepts: [
@@ -187,8 +187,8 @@ async function main() {
                 language: noteData.language,
                 subject: noteData.subject,
                 topic: noteData.topic,
-                visibility: Visibility.PUBLIC,
-                reviewStatus: ReviewStatus.APPROVED,
+                visibility: "PUBLIC",
+                reviewStatus: "APPROVED",
                 concepts: {
                     create: noteData.concepts.map(c => ({
                         term: c.term,
@@ -200,7 +200,7 @@ async function main() {
                     create: noteData.questions.map(q => ({
                         questionText: q.text,
                         difficulty: 3,
-                        bloomLevel: BloomLevel.UNDERSTAND
+                        bloomLevel: "UNDERSTAND"
                     }))
                 }
             },
@@ -215,7 +215,7 @@ async function main() {
             await prisma.gameCard.create({
                 data: {
                     noteId: note.id,
-                    cardType: CardType.DEFINITION,
+                    cardType: "DEFINITION",
                     content: {
                         front: concept.term,
                         back: concept.definition
@@ -231,7 +231,7 @@ async function main() {
             await prisma.gameCard.create({
                 data: {
                     noteId: note.id,
-                    cardType: CardType.MATCHING,
+                    cardType: "MATCHING",
                     content: {
                         pairs: note.concepts.slice(0, 4).map(c => ({
                             id: c.id,
@@ -250,7 +250,7 @@ async function main() {
             await prisma.gameCard.create({
                 data: {
                     noteId: note.id,
-                    cardType: CardType.ORDERING,
+                    cardType: "ORDERING",
                     content: {
                         items: note.concepts.slice(0, 3).map((c, index) => ({
                             id: c.id,

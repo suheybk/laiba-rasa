@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import { hash, compare } from "bcrypt-ts";
 import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.password) return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await compare(password, user.password);
     if (!valid) return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
 
     return NextResponse.json({ success: true, user: { id: user.id, email: user.email, username: user.username } });

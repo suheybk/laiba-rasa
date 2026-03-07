@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+
 import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
 // POST /api/career/onboarding/start — Start career onboarding
 export async function POST() {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         if (!session?.user?.id) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
@@ -62,7 +62,7 @@ export async function POST() {
 // PUT /api/career/onboarding/start — Submit scene selection and get next scene
 export async function PUT(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         if (!session?.user?.id) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
@@ -297,4 +297,4 @@ async function getSceneContent(scene: number, userId: string) {
 }
 
 // Need this import for the helper to work
-import { EducationLevel } from "@prisma/client";
+import { EducationLevel } from "@/types";

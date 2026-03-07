@@ -1,13 +1,13 @@
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const { noteId } = await req.json();
 
         // Demo modu: Session yoksa veya demo not ID'si gelirse demo kartları döndür

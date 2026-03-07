@@ -1,0 +1,9 @@
+name = "laiba-rasa-app"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "laiba-prod"
+database_id = "YOUR_D1_DATABASE_ID_HERE"
+preview_database_id = "YOUR_D1_PREVIEW_DATABASE_ID_HERE"

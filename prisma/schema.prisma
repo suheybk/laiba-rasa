@@ -3,54 +3,54 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id                  String         @id @default(cuid())
-  email               String         @unique
+  id                  String   @id @default(cuid())
+  email               String   @unique
   phone               String?
-  username            String         @unique
+  username            String   @unique
   displayName         String?
   password            String?
-  language            Language       @default(TR)
+  language            String   @default("TR")
   avatarUrl           String?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  kycStatus           KycStatus      @default(PENDING)
-  isBanned            Boolean        @default(false)
-  onboardingCompleted Boolean        @default(false)
-  role                Role           @default(STUDENT)
-  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  kycStatus           String   @default("PENDING")
+  isBanned            Boolean  @default(false)
+  onboardingCompleted Boolean  @default(false)
+  role                String   @default("STUDENT")
+
   // Gamification fields
-  xp                  Int            @default(0)
-  level               Int            @default(1)
-  totalGamesPlayed    Int            @default(0)
-  totalCorrectAnswers Int            @default(0)
-  totalQuestionsAnswered Int         @default(0)
-  currentStreak       Int            @default(0)
-  bestStreak          Int            @default(0)
-  lastPlayedAt        DateTime?
+  xp                     Int       @default(0)
+  level                  Int       @default(1)
+  totalGamesPlayed       Int       @default(0)
+  totalCorrectAnswers    Int       @default(0)
+  totalQuestionsAnswered Int       @default(0)
+  currentStreak          Int       @default(0)
+  bestStreak             Int       @default(0)
+  lastPlayedAt           DateTime?
 
   // Career Discovery fields
-  educationLevel          EducationLevel?
-  onboardingCareerDone    Boolean        @default(false)
-  
-  accounts            Account[]
-  creatorWallet       CreatorWallet?
-  following           Follow[]       @relation("Followers")
-  followers           Follow[]       @relation("Following")
-  gameSessions        GameSession[]
-  masteryEntries      MasteryEntry[]
-  notes               Note[]
-  reports             Report[]       @relation("ReporterReports")
-  reviewedReports     Report[]       @relation("ReviewerReports")
-  sessions            Session[]
-  subscriptions       Subscription[]
-  careerSignals       CareerSignal[]
-  careerProfile       CareerProfile?
-  onboardingCareer    OnboardingCareerState?
+  educationLevel       String?
+  onboardingCareerDone Boolean @default(false)
+
+  accounts         Account[]
+  creatorWallet    CreatorWallet?
+  following        Follow[]               @relation("Followers")
+  followers        Follow[]               @relation("Following")
+  gameSessions     GameSession[]
+  masteryEntries   MasteryEntry[]
+  notes            Note[]
+  reports          Report[]               @relation("ReporterReports")
+  reviewedReports  Report[]               @relation("ReviewerReports")
+  sessions         Session[]
+  subscriptions    Subscription[]
+  careerSignals    CareerSignal[]
+  careerProfile    CareerProfile?
+  onboardingCareer OnboardingCareerState?
 }
 
 model Account {
@@ -102,12 +102,12 @@ model Note {
   id            String         @id @default(cuid())
   userId        String
   title         String
-  language      Language
+  language      String
   subject       String?
   topic         String?
   qualityScore  Int            @default(0)
-  visibility    Visibility     @default(PRIVATE)
-  reviewStatus  ReviewStatus   @default(PENDING)
+  visibility    String         @default("PRIVATE")
+  reviewStatus  String         @default("PENDING")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   applications  Application[]
@@ -128,7 +128,7 @@ model Concept {
   noteId              String
   term                String
   definition          String
-  keywords            Json      @default("[]")
+  keywords            Json?
   importance          Int            @default(3)
   createdAt           DateTime       @default(now())
   note                Note           @relation(fields: [noteId], references: [id], onDelete: Cascade)
@@ -137,22 +137,22 @@ model Concept {
 }
 
 model Relationship {
-  id               String           @id @default(cuid())
+  id               String   @id @default(cuid())
   noteId           String
   sourceConceptId  String
   targetConceptId  String
-  relationshipType RelationshipType
+  relationshipType String
   description      String?
-  createdAt        DateTime         @default(now())
-  note             Note             @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  sourceConcept    Concept          @relation("SourceConcept", fields: [sourceConceptId], references: [id], onDelete: Cascade)
-  targetConcept    Concept          @relation("TargetConcept", fields: [targetConceptId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  note             Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  sourceConcept    Concept  @relation("SourceConcept", fields: [sourceConceptId], references: [id], onDelete: Cascade)
+  targetConcept    Concept  @relation("TargetConcept", fields: [targetConceptId], references: [id], onDelete: Cascade)
 }
 
 model Application {
   id                String   @id @default(cuid())
   noteId            String
-  relatedConceptIds Json      @default("[]")
+  relatedConceptIds Json?
   scenario          String
   context           String?
   createdAt         DateTime @default(now())
@@ -160,24 +160,24 @@ model Application {
 }
 
 model Question {
-  id               String     @id @default(cuid())
+  id               String   @id @default(cuid())
   noteId           String
   questionText     String
-  answerConceptIds Json      @default("[]")
-  difficulty       Int        @default(3)
-  bloomLevel       BloomLevel @default(UNDERSTAND)
-  createdAt        DateTime   @default(now())
-  note             Note       @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  answerConceptIds Json?
+  difficulty       Int      @default(3)
+  bloomLevel       String   @default("UNDERSTAND")
+  createdAt        DateTime @default(now())
+  note             Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 }
 
 model GameCard {
   id              String         @id @default(cuid())
   noteId          String
-  cardType        CardType
+  cardType        String
   content         Json
   difficulty      Int            @default(3)
   importance      Int            @default(3)
-  prerequisites   Json      @default("[]")
+  prerequisites   Json?
   hints           Json?
   feedback        Json?
   confidenceScore Float          @default(0.9)
@@ -191,7 +191,7 @@ model GameSession {
   id              String         @id @default(cuid())
   userId          String
   noteId          String
-  mode            GameMode
+  mode            String
   startedAt       DateTime       @default(now())
   endedAt         DateTime?
   score           Int            @default(0)
@@ -232,18 +232,18 @@ model MasteryEntry {
 }
 
 model Subscription {
-  id              String             @id @default(cuid())
+  id              String   @id @default(cuid())
   userId          String
-  tier            SubscriptionTier
-  period          SubscriptionPeriod
-  status          SubscriptionStatus @default(ACTIVE)
+  tier            String
+  period          String
+  status          String   @default("ACTIVE")
   startsAt        DateTime
   endsAt          DateTime
-  trialUsed       Boolean            @default(false)
+  trialUsed       Boolean  @default(false)
   paymentProvider String?
   externalId      String?
-  createdAt       DateTime           @default(now())
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CreatorWallet {
@@ -277,8 +277,8 @@ model Payout {
   id                String        @id @default(cuid())
   walletId          String
   amountCents       Int
-  status            PayoutStatus  @default(PENDING)
-  method            PayoutMethod
+  status            String        @default("PENDING")
+  method            String
   externalReference String?
   requestedAt       DateTime      @default(now())
   processedAt       DateTime?
@@ -287,211 +287,76 @@ model Payout {
 }
 
 model Report {
-  id          String       @id @default(cuid())
+  id          String    @id @default(cuid())
   reporterId  String
-  targetType  ReportTarget
+  targetType  String
   targetId    String
   reason      String
   description String?
-  status      ReportStatus @default(PENDING)
+  status      String    @default("PENDING")
   reviewedBy  String?
   reviewedAt  DateTime?
   actionTaken String?
-  createdAt   DateTime     @default(now())
-  reporter    User         @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
-  reviewer    User?        @relation("ReviewerReports", fields: [reviewedBy], references: [id])
-}
-
-enum Language {
-  TR
-  AR
-  EN
-}
-
-enum KycStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-}
-
-enum Visibility {
-  PRIVATE
-  PUBLIC
-}
-
-enum ReviewStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum RelationshipType {
-  PRODUCES
-  REQUIRES
-  CAUSES
-  PART_OF
-  SIMILAR_TO
-  OPPOSITE_OF
-  LEADS_TO
-  DEPENDS_ON
-}
-
-enum BloomLevel {
-  REMEMBER
-  UNDERSTAND
-  APPLY
-  ANALYZE
-  EVALUATE
-  CREATE
-}
-
-enum CardType {
-  DEFINITION
-  MATCHING
-  ORDERING
-  GAP_FILL
-  ERROR_SPOTTING
-  EXPLANATION
-}
-
-enum GameMode {
-  DUNGEON
-  ARENA
-  RAID
-}
-
-enum SubscriptionTier {
-  FREE
-  BASIC
-  PRO
-  PRO_MAX
-}
-
-enum SubscriptionPeriod {
-  WEEKLY
-  MONTHLY
-  YEARLY
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
-  TRIAL
-}
-
-enum PayoutStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  REJECTED
-}
-
-enum PayoutMethod {
-  BANK_TRANSFER
-  PAYPAL
-}
-
-enum ReportTarget {
-  NOTE
-  USER
-  COMMENT
-}
-
-enum ReportStatus {
-  PENDING
-  REVIEWED
-  RESOLVED
-  DISMISSED
-}
-
-enum Role {
-  STUDENT
-  TEACHER
-  ADMIN
+  createdAt   DateTime  @default(now())
+  reporter    User      @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewer    User?     @relation("ReviewerReports", fields: [reviewedBy], references: [id])
 }
 
 // ============================================
 // CAREER DISCOVERY ENUMS
 // ============================================
 
-enum RealizationStatus {
-  REALIZED          // Gerçekleşti
-  EMERGING          // Başlangıç Aşaması
-  PENDING           // Beklemede
-  NOT_YET           // Henüz Gerçekleşmedi
-  LIFECYCLE_END     // Ömrü Tamamlanma Aşamasında
-}
-
-enum EducationLevel {
-  PRIMARY           // İlkokul (1-4)
-  MIDDLE            // Ortaokul (5-8)
-  HIGH              // Lise (9-12)
-  UNIVERSITY        // Üniversite
-  ADULT             // Yetişkin
-}
-
-enum SignalSource {
-  ONBOARDING
-  DUNGEON
-  ARENA
-  RAID
-  PREFERENCE
-  BUILDER
-}
-
 // ============================================
 // CAREER DISCOVERY MODELS
 // ============================================
 
 model CareerCategory {
-  id            String     @id @default(cuid())
-  slug          String     @unique        // e.g. "ai", "metaverse", "data"
+  id            String   @id @default(cuid())
+  slug          String   @unique // e.g. "ai", "metaverse", "data"
   nameTr        String
-  nameAr        String     @default("")
-  nameEn        String     @default("")
-  descriptionTr String     @default("")
-  descriptionAr String     @default("")
-  descriptionEn String     @default("")
-  icon          String     @default("")   // emoji or icon class
-  colorHex      String     @default("#f5c518")
-  worldNameTr   String     @default("")   // e.g. "Zeka Kalesi"
-  worldNameEn   String     @default("")
-  worldImage    String     @default("")   // path to world illustration
-  heroNameTr    String     @default("")   // e.g. "Kod Büyücüsü"
-  heroNameEn    String     @default("")
-  heroImage     String     @default("")   // path to hero icon
-  sortOrder     Int        @default(0)
-  createdAt     DateTime   @default(now())
+  nameAr        String   @default("")
+  nameEn        String   @default("")
+  descriptionTr String   @default("")
+  descriptionAr String   @default("")
+  descriptionEn String   @default("")
+  icon          String   @default("") // emoji or icon class
+  colorHex      String   @default("#f5c518")
+  worldNameTr   String   @default("") // e.g. "Zeka Kalesi"
+  worldNameEn   String   @default("")
+  worldImage    String   @default("") // path to world illustration
+  heroNameTr    String   @default("") // e.g. "Kod Büyücüsü"
+  heroNameEn    String   @default("")
+  heroImage     String   @default("") // path to hero icon
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
 
-  jobs          CareerJob[]
-  signals       CareerSignal[]
-  questions     CareerDiscoveryQuestion[]
+  jobs      CareerJob[]
+  signals   CareerSignal[]
+  questions CareerDiscoveryQuestion[]
 
   @@index([slug])
 }
 
 model CareerJob {
-  id                String             @id @default(cuid())
+  id                String   @id @default(cuid())
   categoryId        String
   nameTr            String
-  nameEn            String             @default("")
-  nameAr            String             @default("")
-  descriptionTr     String             @default("")
-  descriptionEn     String             @default("")
-  descriptionAr     String             @default("")
-  heroRoleTr        String             @default("")   // e.g. "Veri Kâşifi"
-  heroRoleEn        String             @default("")
-  superPowerTr      String             @default("")   // e.g. "Kaotik bilgi yığınlarından düzen çıkarır"
-  superPowerEn      String             @default("")
-  yearPredicted     Int                @default(2026)
-  realizationStatus RealizationStatus  @default(NOT_YET)
-  jobNumber         Int                @default(0)     // original row number from Excel
-  sortOrder         Int                @default(0)
-  createdAt         DateTime           @default(now())
+  nameEn            String   @default("")
+  nameAr            String   @default("")
+  descriptionTr     String   @default("")
+  descriptionEn     String   @default("")
+  descriptionAr     String   @default("")
+  heroRoleTr        String   @default("") // e.g. "Veri Kâşifi"
+  heroRoleEn        String   @default("")
+  superPowerTr      String   @default("") // e.g. "Kaotik bilgi yığınlarından düzen çıkarır"
+  superPowerEn      String   @default("")
+  yearPredicted     Int      @default(2026)
+  realizationStatus String   @default("NOT_YET")
+  jobNumber         Int      @default(0) // original row number from Excel
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
 
-  category          CareerCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category CareerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
   @@index([realizationStatus])
@@ -499,71 +364,71 @@ model CareerJob {
 }
 
 model CareerSignal {
-  id            String        @id @default(cuid())
-  userId        String
-  categoryId    String
-  sourceType    SignalSource
-  weight        Float         @default(1.0)
-  signalData    Json?         // selection detail
-  sessionId     String?       // FK to GameSession (optional)
-  createdAt     DateTime      @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  sourceType String
+  weight     Float    @default(1.0)
+  signalData Json? // selection detail
+  sessionId  String? // FK to GameSession (optional)
+  createdAt  DateTime @default(now())
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category      CareerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category CareerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, categoryId])
 }
 
 model CareerProfile {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  primaryCategoryId     String?
-  secondaryCategoryIds  Json     @default("[]")   // array of category IDs
-  topJobs               Json     @default("[]")   // array of { jobId, score }
-  categoryScores        Json     @default("{}")   // { categoryId: normalizedScore }
-  confidenceScore       Float    @default(0)
-  dataSessionsCount     Int      @default(0)
-  heroType              String   @default("")     // e.g. "Veri Kâşifi"
-  version               Int      @default(0)      // Bayesian update count
-  lastUpdated           DateTime @default(now())
-  createdAt             DateTime @default(now())
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  primaryCategoryId    String?
+  secondaryCategoryIds Json? // array of category IDs
+  topJobs              Json? // array of { jobId, score }
+  categoryScores       Json? // { categoryId: normalizedScore }
+  confidenceScore      Float    @default(0)
+  dataSessionsCount    Int      @default(0)
+  heroType             String   @default("") // e.g. "Veri Kâşifi"
+  version              Int      @default(0) // Bayesian update count
+  lastUpdated          DateTime @default(now())
+  createdAt            DateTime @default(now())
 
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model CareerDiscoveryQuestion {
-  id              String          @id @default(cuid())
-  questionNumber  Int             @default(0)
-  educationLevel  EducationLevel
-  sectionTitle    String          @default("")     // e.g. "Temel İlgi ve Eğlence Soruları"
-  questionTr      String
-  questionAr      String          @default("")
-  questionEn      String          @default("")
-  suggestedJobs   String          @default("")     // comma-separated job names
-  categoryTag     String          @default("")     // e.g. "Tasarım & Eğitim"
-  answerOptions   Json?           // { options: [{ text, categoryWeights: { catSlug: weight } }] }
-  gameContext     String          @default("")     // e.g. "dungeon_scene_3"
-  sortOrder       Int             @default(0)
-  createdAt       DateTime        @default(now())
+  id             String   @id @default(cuid())
+  questionNumber Int      @default(0)
+  educationLevel String
+  sectionTitle   String   @default("") // e.g. "Temel İlgi ve Eğlence Soruları"
+  questionTr     String
+  questionAr     String   @default("")
+  questionEn     String   @default("")
+  suggestedJobs  String   @default("") // comma-separated job names
+  categoryTag    String   @default("") // e.g. "Tasarım & Eğitim"
+  answerOptions  Json? // { options: [{ text, categoryWeights: { catSlug: weight } }] }
+  gameContext    String   @default("") // e.g. "dungeon_scene_3"
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
 
-  categoryId      String?
-  category        CareerCategory? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  category   CareerCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([educationLevel])
 }
 
 model OnboardingCareerState {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  currentScene    Int       @default(1)      // 1-6
-  selections      Json      @default("{}")   // all scene selections
-  completedAt     DateTime?
-  createdAt       DateTime  @default(now())
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  currentScene Int       @default(1) // 1-6
+  selections   Json? // all scene selections
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
 
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

@@ -1,12 +1,11 @@
-import { AuthOptions } from "next-auth";
+import NextAuth, { NextAuthConfig } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
+import { compare } from "bcrypt-ts";
 import prisma from "@/lib/db";
 import { z } from "zod";
 
-// Inline login schema to avoid circular imports
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(1),
@@ -14,9 +13,9 @@ const loginSchema = z.object({
 
 const useSecureCookies = process.env.NODE_ENV === "production";
 
-export const authOptions: AuthOptions = {
+export const authConfig = {
     secret: process.env.NEXTAUTH_SECRET,
-    adapter: PrismaAdapter(prisma) as AuthOptions["adapter"],
+    adapter: PrismaAdapter(prisma),
     cookies: {
         sessionToken: {
             name: useSecureCookies ? "__Secure-next-auth.session-token" : "next-auth.session-token",
@@ -52,7 +51,8 @@ export const authOptions: AuthOptions = {
 
                 if (!user || !user.password) return null;
 
-                const isValid = await bcrypt.compare(password, user.password);
+                // Edge compatible compare
+                const isValid = await compare(password, user.password);
                 if (!isValid) return null;
 
                 return {
@@ -89,25 +89,21 @@ export const authOptions: AuthOptions = {
             return baseUrl;
         },
         async signIn({ user, account }) {
-            // Google OAuth ile giriş yapan kullanıcılar için username oluştur
             if (account?.provider === "google" && user.email) {
                 const existingUser = await prisma.user.findUnique({
                     where: { email: user.email },
                 });
 
                 if (!existingUser) {
-                    // Yeni kullanıcı - username oluştur
                     const baseUsername = user.email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_");
                     let username = baseUsername;
                     let counter = 1;
 
-                    // Benzersiz username bul
                     while (await prisma.user.findUnique({ where: { username } })) {
                         username = `${baseUsername}${counter}`;
                         counter++;
                     }
 
-                    // Kullanıcıyı oluştur
                     await prisma.user.create({
                         data: {
                             email: user.email,
@@ -133,7 +129,9 @@ export const authOptions: AuthOptions = {
             return session;
         },
     },
-};
+} satisfies NextAuthConfig;
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 
 export async function isUserPremium(userId: string): Promise<boolean> {
     try {

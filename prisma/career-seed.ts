@@ -1,4 +1,5 @@
-import { PrismaClient, RealizationStatus, EducationLevel } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
+import { Language, Visibility, ReviewStatus, RelationshipType, BloomLevel, CardType, GameMode, SubscriptionTier, SubscriptionPeriod, SubscriptionStatus, RealizationStatus, EducationLevel, SignalSource, Role, KycStatus } from "../src/types";
 
 const prisma = new PrismaClient();
 

@@ -1,0 +1,25 @@
+﻿prisma/career-seed.ts(1,24): error TS2305: Module '"@prisma/client"' has no exported member 'RealizationStatus'.
+prisma/career-seed.ts(1,43): error TS2305: Module '"@prisma/client"' has no exported member 'EducationLevel'.
+prisma/seed.ts(1,24): error TS2305: Module '"@prisma/client"' has no exported member 'Language'.
+prisma/seed.ts(1,34): error TS2305: Module '"@prisma/client"' has no exported member 'Visibility'.
+prisma/seed.ts(1,46): error TS2305: Module '"@prisma/client"' has no exported member 'ReviewStatus'.
+prisma/seed.ts(1,60): error TS2305: Module '"@prisma/client"' has no exported member 'BloomLevel'.
+prisma/seed.ts(1,72): error TS2305: Module '"@prisma/client"' has no exported member 'CardType'.
+src/app/api/auth/register/route.ts(2,20): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.
+src/app/api/auth/test-credentials/route.ts(2,20): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.
+src/app/api/career/jobs/[id]/route.ts(4,10): error TS2305: Module '"@/lib/auth"' has no exported member 'authOptions'.
+src/app/api/career/onboarding/route.ts(300,10): error TS2305: Module '"@prisma/client"' has no exported member 'EducationLevel'.
+src/app/api/career/report/route.ts(3,10): error TS2305: Module '"@/lib/auth"' has no exported member 'authOptions'.
+src/types/index.ts(2,5): error TS2305: Module '"@prisma/client"' has no exported member 'Language'.
+src/types/index.ts(3,5): error TS2305: Module '"@prisma/client"' has no exported member 'Visibility'.
+src/types/index.ts(4,5): error TS2305: Module '"@prisma/client"' has no exported member 'ReviewStatus'.
+src/types/index.ts(5,5): error TS2724: '"@prisma/client"' has no exported member named 'RelationshipType'. Did you mean 'Relationship'?
+src/types/index.ts(6,5): error TS2305: Module '"@prisma/client"' has no exported member 'BloomLevel'.
+src/types/index.ts(7,5): error TS2305: Module '"@prisma/client"' has no exported member 'CardType'.
+src/types/index.ts(8,5): error TS2305: Module '"@prisma/client"' has no exported member 'GameMode'.
+src/types/index.ts(9,5): error TS2724: '"@prisma/client"' has no exported member named 'SubscriptionTier'. Did you mean 'Subscription'?
+src/types/index.ts(10,5): error TS2724: '"@prisma/client"' has no exported member named 'SubscriptionPeriod'. Did you mean 'Subscription'?
+src/types/index.ts(11,5): error TS2724: '"@prisma/client"' has no exported member named 'SubscriptionStatus'. Did you mean 'Subscription'?
+src/types/index.ts(12,5): error TS2305: Module '"@prisma/client"' has no exported member 'RealizationStatus'.
+src/types/index.ts(13,5): error TS2305: Module '"@prisma/client"' has no exported member 'EducationLevel'.
+src/types/index.ts(14,5): error TS2305: Module '"@prisma/client"' has no exported member 'SignalSource'.
