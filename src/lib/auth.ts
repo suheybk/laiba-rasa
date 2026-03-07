@@ -12,9 +12,24 @@ const loginSchema = z.object({
     password: z.string().min(1),
 });
 
+const useSecureCookies = process.env.NODE_ENV === "production";
+
 export const authOptions: AuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     adapter: PrismaAdapter(prisma) as AuthOptions["adapter"],
+    trustHost: true,
+    cookies: {
+        sessionToken: {
+            name: useSecureCookies ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                secure: useSecureCookies,
+                domain: useSecureCookies ? ".l3iba.com" : undefined,
+            },
+        },
+    },
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -58,6 +73,22 @@ export const authOptions: AuthOptions = {
         error: "/auth/error",
     },
     callbacks: {
+        async redirect({ url, baseUrl }) {
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            try {
+                const callbackUrl = new URL(url);
+                if (
+                    callbackUrl.hostname.includes("l3iba.com") ||
+                    callbackUrl.hostname.includes("vercel.app") ||
+                    callbackUrl.hostname === "localhost"
+                ) {
+                    return url;
+                }
+            } catch {
+                return baseUrl;
+            }
+            return baseUrl;
+        },
         async signIn({ user, account }) {
             // Google OAuth ile giriş yapan kullanıcılar için username oluştur
             if (account?.provider === "google" && user.email) {
