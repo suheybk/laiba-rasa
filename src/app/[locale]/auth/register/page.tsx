@@ -54,7 +54,7 @@ export default function RegisterPage() {
                 }),
             });
 
-            const data = await response.json();
+            const data = await response.json() as any;
 
             if (!response.ok) {
                 setErrors(data.errors || [data.error]);
