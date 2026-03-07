@@ -17,7 +17,6 @@ const useSecureCookies = process.env.NODE_ENV === "production";
 export const authOptions: AuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     adapter: PrismaAdapter(prisma) as AuthOptions["adapter"],
-    trustHost: true,
     cookies: {
         sessionToken: {
             name: useSecureCookies ? "__Secure-next-auth.session-token" : "next-auth.session-token",
