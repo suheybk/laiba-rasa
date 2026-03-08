@@ -11,26 +11,19 @@ try {
   console.warn('prisma generate warning:', err && err.message);
 }
 
-// 2. Patch @noble/ciphers to ensure ./utils export exists
-// This fixes ERR_PACKAGE_PATH_NOT_EXPORTED on Node 22+ in Cloudflare Pages
+// 2. Patch @noble/ciphers to ensure all subpath exports exist
+// Cloudflare CI installs an old version missing ./utils, ./webcrypto etc.
+// Adding a wildcard export "./*" -> "./*" covers everything.
 try {
   const noblePkgPath = path.join(__dirname, '..', 'node_modules', '@noble', 'ciphers', 'package.json');
   if (fs.existsSync(noblePkgPath)) {
     const pkg = JSON.parse(fs.readFileSync(noblePkgPath, 'utf8'));
-    let patched = false;
-    if (pkg.exports && !pkg.exports['./utils']) {
-      pkg.exports['./utils'] = {
-        types: './utils.d.ts',
-        import: './utils.js',
-        default: './utils.js'
-      };
-      patched = true;
-    }
-    if (patched) {
+    if (pkg.exports && !pkg.exports['./*']) {
+      pkg.exports['./*'] = './*';
       fs.writeFileSync(noblePkgPath, JSON.stringify(pkg, null, 2), 'utf8');
-      console.log('Patched @noble/ciphers package.json: added ./utils export');
+      console.log('Patched @noble/ciphers: added wildcard ./* export');
     } else {
-      console.log('@noble/ciphers already has ./utils export — no patch needed');
+      console.log('@noble/ciphers already has wildcard export — no patch needed');
     }
   }
 } catch (err) {
