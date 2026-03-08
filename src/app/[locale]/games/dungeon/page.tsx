@@ -24,9 +24,6 @@ import {
     Loader2
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 // Types
 interface GameCard {
     id: string;

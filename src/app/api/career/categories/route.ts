@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 
-export const runtime = "edge";
-
-
-
 // GET /api/career/categories — List all career categories with job counts
 export async function GET() {
     try {

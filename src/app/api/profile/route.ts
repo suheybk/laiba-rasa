@@ -4,10 +4,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getXPToNextLevel } from "@/lib/xp";
 
-export const runtime = "edge";
-
-
-
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();

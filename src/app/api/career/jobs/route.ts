@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 
-export const runtime = "edge";
-
-
-
 // GET /api/career/jobs — List jobs with filtering
 export async function GET(request: NextRequest) {
     try {

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcrypt-ts";
 import { z } from "zod";
 
-export const runtime = "edge";
-
 // Inline schema to avoid Prisma dependency issues during build
 const registerSchema = z.object({
     email: z.string().email("Geçerli bir e-posta adresi girin"),

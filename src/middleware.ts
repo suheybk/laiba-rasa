@@ -2,23 +2,37 @@ import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
 const intlMiddleware = createMiddleware({
-    // A list of all locales that are supported
     locales: ['tr', 'en', 'ar'],
-
-    // Used when no locale matches
     defaultLocale: 'tr',
-
-    // If we should prepend the locale to the path for the default locale
-    // true: /tr/about
-    // false: /about (for default) -> /tr/about (rewrite)
-    // Let's use always prefix for consistency or default prefix? 
-    // User asked for "language support", usually /tr, /en is best.
     localePrefix: 'always'
 });
 
 export default function middleware(request: NextRequest) {
-    // Add custom logic here if needed, or just return intlMiddleware
-    return intlMiddleware(request);
+    try {
+        const response = intlMiddleware(request);
+
+        // Next.js 16 may return responses with immutable headers.
+        // Clone into a fresh NextResponse to avoid the "immutable" TypeError.
+        const freshResponse = new NextResponse(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+        });
+
+        // Copy headers safely
+        response.headers.forEach((value, key) => {
+            freshResponse.headers.set(key, value);
+        });
+
+        // Copy cookies safely
+        response.cookies.getAll().forEach((cookie) => {
+            freshResponse.cookies.set(cookie.name, cookie.value);
+        });
+
+        return freshResponse;
+    } catch (error) {
+        // Fallback: if anything goes wrong, just allow the request through
+        return NextResponse.next();
+    }
 }
 
 export const config = {

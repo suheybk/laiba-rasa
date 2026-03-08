@@ -21,9 +21,6 @@ import {
     Compass
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 interface StatsData {
     user: {
         displayName: string;

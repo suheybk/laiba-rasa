@@ -15,9 +15,6 @@ import {
     Star
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 export default function GamesPage() {
     const t = useTranslations("Games");
     const tCommon = useTranslations("Common");

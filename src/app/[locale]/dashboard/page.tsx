@@ -31,9 +31,6 @@ import {
     Star
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 export default function DashboardPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);

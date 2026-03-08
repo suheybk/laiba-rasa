@@ -20,9 +20,6 @@ import {
     Loader2
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 export default function SettingsPage() {
     const { data: session, update } = useSession();
     const [isSaving, setIsSaving] = useState(false);

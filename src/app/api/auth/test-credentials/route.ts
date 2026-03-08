@@ -3,10 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash, compare } from "bcrypt-ts";
 import { prisma } from "@/lib/db";
 
-export const runtime = "edge";
-
-
-
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();

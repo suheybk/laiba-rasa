@@ -1,9 +1,9 @@
-name = "laiba-rasa-app"
-compatibility_date = "2024-03-20"
+name = "laiba-rasa"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".open-next"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "laiba-prod"
-database_id = "5684cf5a-9609-450a-bc7f-36386d560544"
-preview_database_id = "5684cf5a-9609-450a-bc7f-36386d560544"
+database_name = "laiba-production-db"
+database_id = "b7668b1c-c7b7-42e4-90f6-b92cbdcee6a7"

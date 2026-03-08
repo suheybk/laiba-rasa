@@ -10,9 +10,6 @@ import {
     shouldLevelUp
 } from "@/lib/xp";
 
-export const runtime = "edge";
-
-
 interface GameCompleteRequest {
     gameMode: 'DUNGEON' | 'ARENA';
     noteId?: string;

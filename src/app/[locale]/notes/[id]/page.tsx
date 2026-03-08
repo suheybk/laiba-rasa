@@ -21,9 +21,6 @@ import {
     Loader2
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 interface Note {
     id: string;
     title: string;

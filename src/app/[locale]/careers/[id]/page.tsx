@@ -20,9 +20,6 @@ import {
     Globe,
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 // ============================================
 // TYPES
 // ============================================

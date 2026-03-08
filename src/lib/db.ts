@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaD1 } from "@prisma/adapter-d1";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
@@ -19,10 +19,10 @@ const getClient = () => {
 
     // In Edge/Production execution, dynamically bind Cloudflare D1
     try {
-        const ctx = getRequestContext();
-        const env = ctx?.env as any;
-        if (env?.DB) {
-            const adapter = new PrismaD1(env.DB);
+        const ctx = getCloudflareContext() as any;
+        const env = ctx?.env;
+        if (env && env.DB) {
+            const adapter = new PrismaD1(env.DB as any);
             return new PrismaClient({ adapter });
         }
     } catch (error) {

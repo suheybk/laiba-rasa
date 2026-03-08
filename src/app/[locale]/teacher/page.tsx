@@ -21,9 +21,6 @@ import {
     Shield
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 interface UploadResult {
     success: boolean;
     filename?: string;

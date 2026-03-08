@@ -3,10 +3,6 @@ import { auth } from "@/lib/auth";
 import { isUserPremium } from "@/lib/auth";
 import { getCareerReport, updateCareerProfile } from "@/lib/career-algorithm";
 
-export const runtime = "edge";
-
-
-
 // GET /api/career/report — Get full career report
 export async function GET() {
     try {

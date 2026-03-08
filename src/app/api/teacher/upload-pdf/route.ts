@@ -3,8 +3,6 @@ import { auth } from "@/lib/auth";
 
 // const pdf = require("pdf-parse"); // Commented out for edge compatibility
 
-export const runtime = "edge";
-
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();

@@ -20,9 +20,6 @@ import {
     Flame
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 interface GameCard {
     id: string;
     question: string;

@@ -42,6 +42,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
+            <Link href="/careers" className="text-slate-300 hover:text-white transition-colors">
+              {tNav("careers")}
+            </Link>
             <Link href="#features" className="text-slate-300 hover:text-white transition-colors">
               {tNav("features")}
             </Link>
@@ -84,7 +87,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link href="/auth/register">
+            <Link href="/career-onboarding">
               <Button size="xl" className="w-full sm:w-auto">
                 {t("hero.ctaStart")}
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -404,7 +407,7 @@ function PricingCard({
         ))}
       </ul>
 
-      <Link href="/auth/register" className="block">
+      <Link href="/career-onboarding" className="block">
         <Button
           variant={buttonVariant}
           className="w-full"

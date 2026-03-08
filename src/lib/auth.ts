@@ -68,8 +68,8 @@ export const authConfig = {
         strategy: "jwt",
     },
     pages: {
-        signIn: "/auth/login",
-        error: "/auth/error",
+        signIn: "/tr/auth/login",
+        error: "/tr/auth/login",
     },
     callbacks: {
         async redirect({ url, baseUrl }) {

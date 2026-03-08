@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-
     ArrowRight,
     ArrowLeft,
     Sparkles,
@@ -17,10 +17,9 @@ import {
     Trophy,
     Loader2,
     Check,
+    LogIn,
+    UserPlus,
 } from "lucide-react";
-
-export const runtime = "edge";
-
 
 // ============================================
 // TYPES
@@ -45,8 +44,8 @@ interface LevelOption {
 
 interface QuestionItem {
     id: string;
-    text: string;
-    textEn: string;
+    questionTr: string;
+    questionEn: string;
     suggestedJobs: string;
     categoryTag: string;
 }
@@ -58,28 +57,27 @@ interface ValueOption {
     categorySlugs: string[];
 }
 
-interface SceneContent {
-    title: string;
-    titleEn?: string;
-    type: string;
-    instruction?: string;
-    maxSelections?: number;
-    options?: CategoryOption[] | LevelOption[] | ValueOption[];
-    questions?: QuestionItem[];
-}
+// ============================================
+// STATIC DATA — Levels & Values
+// ============================================
+const LEVELS: LevelOption[] = [
+    { key: "PRIMARY", label: "İlkokul (6-10 yaş)", labelEn: "Primary School" },
+    { key: "MIDDLE", label: "Ortaokul (11-14 yaş)", labelEn: "Middle School" },
+    { key: "HIGH", label: "Lise (15-18 yaş)", labelEn: "High School" },
+    { key: "UNIVERSITY", label: "Üniversite", labelEn: "University" },
+    { key: "ADULT", label: "Yetişkin / Profesyonel", labelEn: "Adult / Professional" },
+];
 
-interface OnboardingData {
-    sessionId?: string;
-    currentScene: number;
-    totalScenes: number;
-    sceneContent: SceneContent;
-    completed?: boolean;
-    profile?: Record<string, unknown>;
-    primaryCategory?: CategoryOption;
-}
+const VALUES: ValueOption[] = [
+    { key: "innovation", label: "Yenilikçilik — Yeni şeyler keşfetmek", labelEn: "Innovation", categorySlugs: ["ai", "metaverse", "science"] },
+    { key: "helping", label: "Yardımseverlik — İnsanlara yardım etmek", labelEn: "Helping Others", categorySlugs: ["health", "psychology", "education"] },
+    { key: "creativity", label: "Yaratıcılık — Tasarlamak ve üretmek", labelEn: "Creativity", categorySlugs: ["design", "gaming", "marketing"] },
+    { key: "security", label: "Güvenlik — Korumak ve savunmak", labelEn: "Security", categorySlugs: ["cyber", "law", "environment"] },
+    { key: "leadership", label: "Liderlik — Yönetmek ve strateji kurmak", labelEn: "Leadership", categorySlugs: ["finance", "data", "robotics"] },
+];
 
 // ============================================
-// SCENE ICONS
+// SCENE CONFIG
 // ============================================
 const sceneIcons = [Globe, User, Swords, Swords, Heart, Trophy];
 const sceneNames = [
@@ -92,120 +90,214 @@ const sceneNames = [
 ];
 
 // ============================================
-// MAIN COMPONENT
+// LOCALSTORAGE HELPERS
+// ============================================
+const STORAGE_KEY = "laiba_onboarding";
+
+function saveOnboarding(data: Record<string, unknown>) {
+    if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+}
+
+function loadOnboarding(): Record<string, unknown> | null {
+    if (typeof window === "undefined") return null;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+}
+
+// ============================================
+// MAIN COMPONENT — GUEST MODE
 // ============================================
 export default function CareerOnboardingPage() {
+    const params = useParams();
+    const locale = (params?.locale as string) || "tr";
+
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentScene, setCurrentScene] = useState(1);
-    const [sceneContent, setSceneContent] = useState<SceneContent | null>(null);
     const [completed, setCompleted] = useState(false);
-    const [profileResult, setProfileResult] = useState<Record<string, unknown> | null>(null);
-    const [primaryCategory, setPrimaryCategory] = useState<CategoryOption | null>(null);
 
-    // Scene-specific selections
+    // Data from API
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [questions, setQuestions] = useState<QuestionItem[]>([]);
+
+    // Scene selections
     const [selectedWorlds, setSelectedWorlds] = useState<string[]>([]);
     const [selectedLevel, setSelectedLevel] = useState<string>("");
     const [questionAnswers, setQuestionAnswers] = useState<Record<string, number>>({});
     const [selectedValue, setSelectedValue] = useState<string>("");
 
-    // Start onboarding
-    const startOnboarding = useCallback(async () => {
+    // Computed results
+    const [topCategory, setTopCategory] = useState<CategoryOption | null>(null);
+    const [heroType, setHeroType] = useState<string>("");
+
+    // Load categories and questions from public API
+    const loadData = useCallback(async () => {
         setLoading(true);
-        setError(null);
         try {
-            const res = await fetch("/api/career/onboarding", { method: "POST" });
-            const json = (await res.json()) as any;
-            if (!json.success) {
-                setError(json.error || "Failed to start");
-                return;
+            const [catRes, qRes] = await Promise.all([
+                fetch("/api/career/categories"),
+                fetch("/api/career/questions"),
+            ]);
+
+            const catJson = await catRes.json();
+            const qJson = await qRes.json();
+
+            if (catJson.success && catJson.data) {
+                // Filter out the "cross" category
+                const filteredCats = catJson.data.filter((c: CategoryOption) => c.slug !== "cross");
+                setCategories(filteredCats);
             }
-            setCurrentScene(json.data.currentScene);
-            setSceneContent(json.data.sceneContent);
+
+            if (qJson.success && qJson.data) {
+                setQuestions(qJson.data);
+            }
+
+            // Restore previous progress if any
+            const saved = loadOnboarding();
+            if (saved) {
+                if (saved.selectedWorlds) setSelectedWorlds(saved.selectedWorlds as string[]);
+                if (saved.selectedLevel) setSelectedLevel(saved.selectedLevel as string);
+                if (saved.questionAnswers) setQuestionAnswers(saved.questionAnswers as Record<string, number>);
+                if (saved.selectedValue) setSelectedValue(saved.selectedValue as string);
+                if (saved.currentScene) setCurrentScene(saved.currentScene as number);
+            }
         } catch (err) {
-            setError("Network error: " + (err as Error).message);
+            setError("Veri yüklenirken bir hata oluştu: " + (err as Error).message);
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        startOnboarding();
-    }, [startOnboarding]);
+        loadData();
+    }, [loadData]);
 
-    // Submit scene and advance
-    const submitScene = async () => {
-        setSubmitting(true);
+    // Save progress to localStorage on every change
+    useEffect(() => {
+        if (!loading) {
+            saveOnboarding({
+                selectedWorlds,
+                selectedLevel,
+                questionAnswers,
+                selectedValue,
+                currentScene,
+            });
+        }
+    }, [selectedWorlds, selectedLevel, questionAnswers, selectedValue, currentScene, loading]);
+
+    // Compute results when completing
+    const computeResults = () => {
+        // Simple scoring: count which categories got the most engagement
+        const scores: Record<string, number> = {};
+
+        // World selections → direct score boost
+        for (const catId of selectedWorlds) {
+            const cat = categories.find((c) => c.id === catId);
+            if (cat) {
+                scores[cat.slug] = (scores[cat.slug] || 0) + 3;
+            }
+        }
+
+        // Question answers → weighted by score
+        for (const [qId, score] of Object.entries(questionAnswers)) {
+            const q = questions.find((qi) => qi.id === qId);
+            if (q && q.categoryTag) {
+                const tags = q.categoryTag.split(",").map((t) => t.trim().toLowerCase());
+                for (const tag of tags) {
+                    // Map tag to category slug
+                    const mapped = mapTagToSlug(tag);
+                    if (mapped) {
+                        scores[mapped] = (scores[mapped] || 0) + score;
+                    }
+                }
+            }
+        }
+
+        // Value selection → boost
+        const valueOpt = VALUES.find((v) => v.key === selectedValue);
+        if (valueOpt) {
+            for (const slug of valueOpt.categorySlugs) {
+                scores[slug] = (scores[slug] || 0) + 2;
+            }
+        }
+
+        // Find top category
+        let maxSlug = "";
+        let maxScore = 0;
+        for (const [slug, sc] of Object.entries(scores)) {
+            if (sc > maxScore) {
+                maxScore = sc;
+                maxSlug = slug;
+            }
+        }
+
+        const topCat = categories.find((c) => c.slug === maxSlug) || categories[0];
+        setTopCategory(topCat);
+
+        // Map to hero type
+        const heroNames: Record<string, string> = {};
+        for (const cat of categories) {
+            heroNames[cat.slug] = cat.worldNameTr;
+        }
+        setHeroType(getHeroName(maxSlug));
+
+        setCompleted(true);
+        setCurrentScene(6);
+
+        // Save final results
+        saveOnboarding({
+            selectedWorlds,
+            selectedLevel,
+            questionAnswers,
+            selectedValue,
+            currentScene: 6,
+            completed: true,
+            topCategorySlug: maxSlug,
+            scores,
+        });
+    };
+
+    // Submit current scene
+    const submitScene = () => {
         setError(null);
-
-        let selections: Record<string, unknown> = {};
 
         switch (currentScene) {
             case 1:
                 if (selectedWorlds.length < 1) {
                     setError("En az 1 dünya seçmelisin!");
-                    setSubmitting(false);
                     return;
                 }
-                selections = { categoryIds: selectedWorlds };
+                setCurrentScene(2);
                 break;
             case 2:
                 if (!selectedLevel) {
                     setError("Seviye seçmelisin!");
-                    setSubmitting(false);
                     return;
                 }
-                selections = { level: selectedLevel };
+                setCurrentScene(3);
                 break;
             case 3:
+                setCurrentScene(4);
+                break;
             case 4:
-                selections = { answers: questionAnswers };
+                setCurrentScene(5);
                 break;
             case 5:
                 if (!selectedValue) {
                     setError("Bir değer seçmelisin!");
-                    setSubmitting(false);
                     return;
                 }
-                selections = { value: selectedValue };
+                computeResults();
                 break;
-            case 6:
-                selections = { confirmed: true };
-                break;
-        }
-
-        try {
-            const res = await fetch("/api/career/onboarding", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sceneId: currentScene, selections }),
-            });
-            const json = (await res.json()) as any;
-
-            if (!json.success) {
-                setError(json.error || "Failed");
-                setSubmitting(false);
-                return;
-            }
-
-            if (json.data.completed) {
-                setCompleted(true);
-                setProfileResult(json.data.profile);
-                setPrimaryCategory(json.data.primaryCategory);
-                setCurrentScene(6);
-            } else {
-                setCurrentScene(json.data.currentScene);
-                setSceneContent(json.data.sceneContent);
-                // Reset scene-specific state
-                setQuestionAnswers({});
-            }
-        } catch (err) {
-            setError("Network error: " + (err as Error).message);
-        } finally {
-            setSubmitting(false);
         }
     };
+
+    // Split questions into two scenes
+    const scene3Questions = questions.slice(0, Math.ceil(questions.length / 2));
+    const scene4Questions = questions.slice(Math.ceil(questions.length / 2));
+    const currentQuestions = currentScene === 3 ? scene3Questions : scene4Questions;
 
     // ============================================
     // RENDER
@@ -230,10 +322,10 @@ export default function CareerOnboardingPage() {
                         <div
                             key={scene}
                             className={`h-2 rounded-full transition-all duration-500 ${scene === currentScene
-                                    ? "w-10 bg-gradient-to-r from-violet-500 to-cyan-500"
-                                    : scene < currentScene
-                                        ? "w-4 bg-emerald-500"
-                                        : "w-2 bg-slate-700"
+                                ? "w-10 bg-gradient-to-r from-violet-500 to-cyan-500"
+                                : scene < currentScene
+                                    ? "w-4 bg-emerald-500"
+                                    : "w-2 bg-slate-700"
                                 }`}
                         />
                     ))}
@@ -264,19 +356,27 @@ export default function CareerOnboardingPage() {
                         <CardTitle className="text-2xl md:text-3xl">
                             {completed
                                 ? "🎉 Kahraman Profilin Hazır!"
-                                : sceneContent?.title || "Yükleniyor..."}
+                                : currentScene === 1
+                                    ? "Hangi Dünyalar Seni Çeker?"
+                                    : currentScene === 2
+                                        ? "Eğitim Seviyen Nedir?"
+                                        : currentScene === 3
+                                            ? "İlk Görev — Sorular"
+                                            : currentScene === 4
+                                                ? "Kapasite Bölümü — Sorular"
+                                                : "Hangi Değer Seni Tanımlar?"}
                         </CardTitle>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                         {/* ========== SCENE 1: World Selection ========== */}
-                        {currentScene === 1 && sceneContent?.options && (
+                        {currentScene === 1 && (
                             <div>
                                 <p className="text-slate-400 text-center mb-4">
-                                    {sceneContent.instruction || "En çok 3 dünya seç"}
+                                    Seni en çok ilgilendiren 1–3 dünya seç
                                 </p>
                                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                    {(sceneContent.options as CategoryOption[]).map((cat) => {
+                                    {categories.map((cat) => {
                                         const isSelected = selectedWorlds.includes(cat.id);
                                         return (
                                             <button
@@ -289,8 +389,8 @@ export default function CareerOnboardingPage() {
                                                     }
                                                 }}
                                                 className={`p-3 rounded-xl border-2 transition-all duration-300 text-center group ${isSelected
-                                                        ? "border-violet-500 bg-violet-500/20 scale-105 shadow-lg shadow-violet-500/20"
-                                                        : "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800"
+                                                    ? "border-violet-500 bg-violet-500/20 scale-105 shadow-lg shadow-violet-500/20"
+                                                    : "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800"
                                                     }`}
                                             >
                                                 <div className="text-2xl mb-1">{cat.icon}</div>
@@ -316,15 +416,15 @@ export default function CareerOnboardingPage() {
                         )}
 
                         {/* ========== SCENE 2: Level Selection ========== */}
-                        {currentScene === 2 && sceneContent?.options && (
+                        {currentScene === 2 && (
                             <div className="space-y-3">
-                                {(sceneContent.options as LevelOption[]).map((opt) => (
+                                {LEVELS.map((opt) => (
                                     <button
                                         key={opt.key}
                                         onClick={() => setSelectedLevel(opt.key)}
                                         className={`w-full p-4 rounded-xl border-2 transition-all text-left ${selectedLevel === opt.key
-                                                ? "border-violet-500 bg-violet-500/20"
-                                                : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                                            ? "border-violet-500 bg-violet-500/20"
+                                            : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
                                             }`}
                                     >
                                         <div className="font-medium">{opt.label}</div>
@@ -334,34 +434,45 @@ export default function CareerOnboardingPage() {
                             </div>
                         )}
 
-                        {/* ========== SCENE 3 & 4: Dungeon Questions ========== */}
-                        {(currentScene === 3 || currentScene === 4) && sceneContent?.questions && (
-                            <div className="space-y-4">
-                                {sceneContent.questions.map((q, idx) => (
+                        {/* ========== SCENE 3 & 4: Questions ========== */}
+                        {(currentScene === 3 || currentScene === 4) && (
+                            <div className="space-y-5">
+                                <div className="text-center p-3 rounded-xl bg-violet-500/10 border border-violet-500/20 mb-4">
+                                    <p className="text-violet-300 text-sm font-medium">
+                                        🎯 Her konu için ilgi seviyeni seç
+                                    </p>
+                                    <p className="text-slate-500 text-xs mt-1">
+                                        Doğru/yanlış cevap yok — sadece seni ne kadar ilgilendiriyor onu seç!
+                                    </p>
+                                </div>
+                                {currentQuestions.map((q, idx) => (
                                     <div key={q.id} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-                                        <p className="text-sm text-slate-300 mb-3">
+                                        <p className="text-sm text-slate-300 mb-4">
                                             <span className="text-violet-400 font-bold mr-2">{idx + 1}.</span>
-                                            {q.text}
+                                            {q.questionTr}
                                         </p>
-                                        <div className="flex gap-2">
-                                            {[1, 2, 3, 4, 5].map((score) => (
+                                        <div className="flex gap-1.5 sm:gap-2">
+                                            {[
+                                                { score: 1, emoji: "😐", label: "Pek değil" },
+                                                { score: 2, emoji: "🤔", label: "Biraz" },
+                                                { score: 3, emoji: "😊", label: "İlgimi çeker" },
+                                                { score: 4, emoji: "😍", label: "Çok sever!" },
+                                                { score: 5, emoji: "🔥", label: "Bayılırım!" },
+                                            ].map(({ score, emoji, label }) => (
                                                 <button
                                                     key={score}
                                                     onClick={() =>
                                                         setQuestionAnswers({ ...questionAnswers, [q.id]: score })
                                                     }
-                                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${questionAnswers[q.id] === score
-                                                            ? "bg-violet-500 text-white"
-                                                            : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                                                    className={`flex-1 py-2.5 px-1 rounded-xl text-center transition-all duration-200 ${questionAnswers[q.id] === score
+                                                        ? "bg-violet-500 text-white scale-105 shadow-lg shadow-violet-500/30 border-2 border-violet-400"
+                                                        : "bg-slate-700/80 text-slate-400 hover:bg-slate-600 border-2 border-transparent"
                                                         }`}
                                                 >
-                                                    {score}
+                                                    <div className="text-lg sm:text-xl">{emoji}</div>
+                                                    <div className="text-[9px] sm:text-[10px] mt-0.5 leading-tight font-medium">{label}</div>
                                                 </button>
                                             ))}
-                                        </div>
-                                        <div className="flex justify-between text-[10px] text-slate-600 mt-1 px-1">
-                                            <span>Hiç ilgimi çekmez</span>
-                                            <span>Çok ilgimi çeker</span>
                                         </div>
                                     </div>
                                 ))}
@@ -369,15 +480,15 @@ export default function CareerOnboardingPage() {
                         )}
 
                         {/* ========== SCENE 5: Value Choice ========== */}
-                        {currentScene === 5 && sceneContent?.options && (
+                        {currentScene === 5 && (
                             <div className="space-y-3">
-                                {(sceneContent.options as ValueOption[]).map((opt) => (
+                                {VALUES.map((opt) => (
                                     <button
                                         key={opt.key}
                                         onClick={() => setSelectedValue(opt.key)}
                                         className={`w-full p-4 rounded-xl border-2 transition-all text-left ${selectedValue === opt.key
-                                                ? "border-violet-500 bg-violet-500/20"
-                                                : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                                            ? "border-violet-500 bg-violet-500/20"
+                                            : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
                                             }`}
                                     >
                                         <div className="font-medium">{opt.label}</div>
@@ -394,7 +505,7 @@ export default function CareerOnboardingPage() {
                                 <div className="relative">
                                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-violet-500/30 to-cyan-500/30 flex items-center justify-center mx-auto border-2 border-violet-500/50 shadow-xl shadow-violet-500/20">
                                         <div className="text-5xl">
-                                            {primaryCategory?.icon || "⭐"}
+                                            {topCategory?.icon || "⭐"}
                                         </div>
                                     </div>
                                     <div className="absolute -top-2 left-1/2 -translate-x-1/2">
@@ -404,33 +515,43 @@ export default function CareerOnboardingPage() {
 
                                 <div>
                                     <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                                        {(profileResult as Record<string, unknown>)?.heroType as string || "Kahraman"}
+                                        {heroType || "Kahraman"}
                                     </h3>
                                     <p className="text-slate-400 mt-1">
-                                        {primaryCategory?.worldNameTr || "Senin dünyan"}
+                                        {topCategory?.worldNameTr || "Senin dünyan"}
                                     </p>
                                 </div>
 
                                 <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                                     <p className="text-emerald-400 text-sm">
-                                        Kariyer keşif yolculuğun başladı! Oyun oynadıkça profilin gelişecek ve sana en uygun meslekleri keşfedeceksin.
+                                        Kariyer keşif yolculuğun başladı! Kayıt olarak profilini kaydet, oyun oynadıkça profilin gelişsin ve sana en uygun meslekleri keşfet.
                                     </p>
                                 </div>
 
-                                <div className="flex gap-3 justify-center">
-                                    <Link href="/profile">
-                                        <Button>
-                                            <Trophy className="w-4 h-4 mr-2" />
-                                            Profilimi Gör
+                                {/* CTA: Register to save results */}
+                                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                    <Link href={`/${locale}/auth/register`}>
+                                        <Button className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-8 py-3 text-base">
+                                            <UserPlus className="w-5 h-5 mr-2" />
+                                            Ücretsiz Kayıt Ol — Sonuçlarını Kaydet
                                         </Button>
                                     </Link>
-                                    <Link href="/games">
-                                        <Button variant="outline">
-                                            <Swords className="w-4 h-4 mr-2" />
-                                            Oyuna Başla
+                                    <Link href={`/${locale}/auth/login`}>
+                                        <Button variant="outline" className="w-full sm:w-auto">
+                                            <LogIn className="w-4 h-4 mr-2" />
+                                            Zaten Hesabım Var
                                         </Button>
                                     </Link>
                                 </div>
+
+                                {/* Browse careers */}
+                                <Link
+                                    href={`/${locale}/careers`}
+                                    className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1"
+                                >
+                                    15 Kariyer Dünyasını Keşfet
+                                    <ArrowRight className="w-4 h-4" />
+                                </Link>
                             </div>
                         )}
 
@@ -449,31 +570,74 @@ export default function CareerOnboardingPage() {
                                     Geri
                                 </Button>
 
-                                <Button onClick={submitScene} disabled={submitting}>
-                                    {submitting ? (
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                        <ArrowRight className="w-4 h-4 mr-2" />
-                                    )}
-                                    {currentScene === 6 ? "Tamamla" : "Devam Et"}
+                                <Button onClick={submitScene}>
+                                    <ArrowRight className="w-4 h-4 mr-2" />
+                                    Devam Et
                                 </Button>
                             </div>
                         )}
                     </CardContent>
-                </Card>
+                </Card >
 
                 {/* Skip option */}
-                {!completed && (
-                    <div className="text-center mt-6">
-                        <Link
-                            href="/games"
-                            className="text-sm text-slate-500 hover:text-slate-400 transition-colors"
-                        >
-                            Kariyer keşfini atla →
-                        </Link>
-                    </div>
-                )}
-            </div>
-        </div>
+                {
+                    !completed && (
+                        <div className="text-center mt-6">
+                            <Link
+                                href={`/${locale}/careers`}
+                                className="text-sm text-slate-500 hover:text-slate-400 transition-colors"
+                            >
+                                Kariyer kataloğuna git →
+                            </Link>
+                        </div>
+                    )
+                }
+            </div >
+        </div >
     );
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function mapTagToSlug(tag: string): string | null {
+    const map: Record<string, string> = {
+        "yapay zeka": "ai", "ai": "ai", "zeka": "ai",
+        "metaverse": "metaverse", "sanal": "metaverse",
+        "veri": "data", "data": "data", "analitik": "data",
+        "siber": "cyber", "blockchain": "cyber", "güvenlik": "cyber",
+        "robotik": "robotics", "robot": "robotics", "otonom": "robotics",
+        "sağlık": "health", "biyoteknoloji": "health", "bio": "health",
+        "çevre": "environment", "sürdürülebilirlik": "environment", "yeşil": "environment",
+        "hukuk": "law", "etik": "law", "regülasyon": "law",
+        "pazarlama": "marketing", "iletişim": "marketing", "medya": "marketing",
+        "eğitim": "education", "koçluk": "education", "mentor": "education",
+        "tasarım": "design", "sanat": "design", "yaratıcı": "design",
+        "finans": "finance", "ekonomi": "finance", "altın": "finance",
+        "psikoloji": "psychology", "ruh": "psychology", "zihin": "psychology",
+        "oyun": "gaming", "e-spor": "gaming", "gaming": "gaming",
+        "bilim": "science", "uzay": "science", "kuantum": "science",
+    };
+    return map[tag.toLowerCase()] || null;
+}
+
+function getHeroName(slug: string): string {
+    const heroes: Record<string, string> = {
+        ai: "Kod Büyücüsü",
+        metaverse: "Dijital Diyar Kurucusu",
+        data: "Veri Kâşifi",
+        cyber: "Siber Kalkan",
+        robotics: "Makine Ustası",
+        health: "Şifa Bilgini",
+        environment: "Yeşil Muhafız",
+        law: "Adalet Bekçisi",
+        marketing: "Ses Efsanesi",
+        education: "Bilge Mentor",
+        design: "Sanat Ustası",
+        finance: "Altın Stratejist",
+        psychology: "Zihin Okuyucu",
+        gaming: "Arena Efsanesi",
+        science: "Yıldız Kaşifi",
+    };
+    return heroes[slug] || "Kahraman";
 }

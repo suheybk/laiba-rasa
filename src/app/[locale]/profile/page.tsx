@@ -21,9 +21,6 @@ import {
     LogIn
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 interface ProfileData {
     isDemo: boolean;
     user: {

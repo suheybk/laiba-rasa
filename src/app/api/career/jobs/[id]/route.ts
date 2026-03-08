@@ -3,10 +3,6 @@ import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { isUserPremium } from "@/lib/auth";
 
-export const runtime = "edge";
-
-
-
 // GET /api/career/jobs/[id] — Get a single job with full details
 export async function GET(
     request: NextRequest,

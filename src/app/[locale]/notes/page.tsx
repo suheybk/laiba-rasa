@@ -17,9 +17,6 @@ import {
     Clock
 } from "lucide-react";
 
-export const runtime = "edge";
-
-
 // Simple relative time formatter
 function formatRelativeTime(dateStr: string, locale: string): string {
     const date = new Date(dateStr);
