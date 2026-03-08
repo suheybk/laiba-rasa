@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node ./scripts/postinstall.js && next build",
-    "pages:build": "node ./scripts/postinstall.js && npx @cloudflare/next-on-pages",
+    "build": "next build",
+    "pages:build": "npx @opennextjs/cloudflare build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node ./scripts/postinstall.js"
@@ -53,5 +53,8 @@
     "typescript": "^5",
     "wrangler": "^4.71.0",
     "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "@noble/ciphers": "2.1.1"
   }
 }
